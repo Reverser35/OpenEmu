@@ -37,6 +37,7 @@
 			buildPhases = (
 			);
 			dependencies = (
+				986F322216D3F49800BB38E2 /* PBXTargetDependency */,
 				945E431F1517F75B00057D08 /* PBXTargetDependency */,
 				94D7E8E9150741B500FBDD85 /* PBXTargetDependency */,
 				8291C4E0148958F500A72540 /* PBXTargetDependency */,
@@ -545,6 +546,12 @@
 		94E6C304166DB15900082F27 /* Controller-Mappings.plist in Resources */ = {isa = PBXBuildFile; fileRef = 94E6C303166DB15900082F27 /* Controller-Mappings.plist */; };
 		94FC53881688FF60003C6AFE /* controller_gamegear_mask.png in Resources */ = {isa = PBXBuildFile; fileRef = 94FC53861688FF60003C6AFE /* controller_gamegear_mask.png */; };
 		94FC53891688FF60003C6AFE /* controller_gamegear.png in Resources */ = {isa = PBXBuildFile; fileRef = 94FC53871688FF60003C6AFE /* controller_gamegear.png */; };
+		986F321116D3EA8400BB38E2 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C6711810136368330034379A /* Cocoa.framework */; };
+		986F321716D3EA8400BB38E2 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 986F321516D3EA8400BB38E2 /* InfoPlist.strings */; };
+		986F322016D3F45000BB38E2 /* OpenEmuSystem.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C6711807136367240034379A /* OpenEmuSystem.framework */; };
+		986F322316D3F52500BB38E2 /* Vectrex.oesystemplugin in Copy System Plugins to App Plugins */ = {isa = PBXBuildFile; fileRef = 986F321016D3EA8400BB38E2 /* Vectrex.oesystemplugin */; };
+		986F322616D3F69A00BB38E2 /* OEVectrexSystemResponder.m in Sources */ = {isa = PBXBuildFile; fileRef = 986F322516D3F69A00BB38E2 /* OEVectrexSystemResponder.m */; };
+		986F322916D3FBF700BB38E2 /* Keyboard-Mappings.plist in Resources */ = {isa = PBXBuildFile; fileRef = 986F322816D3FBF700BB38E2 /* Keyboard-Mappings.plist */; };
 		C61C98C40F58308C007F4242 /* OEGameCoreController.h in Headers */ = {isa = PBXBuildFile; fileRef = C60BF0350F5709FC000D94F6 /* OEGameCoreController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		C6252DA814E71D0500350A13 /* controller_fc.png in Resources */ = {isa = PBXBuildFile; fileRef = C6252DA914E71D0500350A13 /* controller_fc.png */; };
 		C6252DAC14E752E300350A13 /* Controller-Preferences.plist in Resources */ = {isa = PBXBuildFile; fileRef = C6252DAA14E752E300350A13 /* Controller-Preferences.plist */; };
@@ -879,6 +886,20 @@
 			remoteGlobalIDString = 94D7E8C815073BA000FBDD85;
 			remoteInfo = NDS;
 		};
+		986F321E16D3F44700BB38E2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2A37F4A9FDCFA73011CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C67117ED136367240034379A;
+			remoteInfo = OpenEmuSystem;
+		};
+		986F322116D3F49800BB38E2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2A37F4A9FDCFA73011CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 986F320F16D3EA8400BB38E2;
+			remoteInfo = Vectrex;
+		};
 		C60FC00013522D9A00B53F64 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 2A37F4A9FDCFA73011CA2CEA /* Project object */;
@@ -1015,6 +1036,7 @@
 			dstPath = Systems;
 			dstSubfolderSpec = 13;
 			files = (
+				986F322316D3F52500BB38E2 /* Vectrex.oesystemplugin in Copy System Plugins to App Plugins */,
 				823CA74E1692BCC0007F2A39 /* N64.oesystemplugin in Copy System Plugins to App Plugins */,
 				948E540E1571D78D002D26E0 /* SegaMasterSystem.oesystemplugin in Copy System Plugins to App Plugins */,
 				948E540F1571D78D002D26E0 /* NES.oesystemplugin in Copy System Plugins to App Plugins */,
@@ -1713,6 +1735,13 @@
 		94E6C303166DB15900082F27 /* Controller-Mappings.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "Controller-Mappings.plist"; sourceTree = "<group>"; };
 		94FC53861688FF60003C6AFE /* controller_gamegear_mask.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = controller_gamegear_mask.png; sourceTree = "<group>"; };
 		94FC53871688FF60003C6AFE /* controller_gamegear.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = controller_gamegear.png; sourceTree = "<group>"; };
+		986F321016D3EA8400BB38E2 /* Vectrex.oesystemplugin */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Vectrex.oesystemplugin; sourceTree = BUILT_PRODUCTS_DIR; };
+		986F321416D3EA8400BB38E2 /* Vectrex-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Vectrex-Info.plist"; sourceTree = "<group>"; };
+		986F321616D3EA8400BB38E2 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		986F322416D3F69A00BB38E2 /* OEVectrexSystemResponder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OEVectrexSystemResponder.h; sourceTree = "<group>"; };
+		986F322516D3F69A00BB38E2 /* OEVectrexSystemResponder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OEVectrexSystemResponder.m; sourceTree = "<group>"; };
+		986F322716D3F6FD00BB38E2 /* OEVectrexSystemResponderClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OEVectrexSystemResponderClient.h; sourceTree = "<group>"; };
+		986F322816D3FBF700BB38E2 /* Keyboard-Mappings.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "Keyboard-Mappings.plist"; sourceTree = "<group>"; };
 		C60BF0350F5709FC000D94F6 /* OEGameCoreController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OEGameCoreController.h; sourceTree = "<group>"; };
 		C60BF0360F5709FC000D94F6 /* OEGameCoreController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OEGameCoreController.m; sourceTree = "<group>"; };
 		C60CDDD611780DF100EB472F /* OpenGL Format Table.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "OpenGL Format Table.txt"; sourceTree = "<group>"; };
@@ -1993,6 +2022,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		986F320D16D3EA8400BB38E2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				986F322016D3F45000BB38E2 /* OpenEmuSystem.framework in Frameworks */,
+				986F321116D3EA8400BB38E2 /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C646574513771F12002A4F70 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -2157,6 +2195,7 @@
 				8227754F148946DF00B19E27 /* GameGear.oesystemplugin */,
 				94D7E8C915073BA000FBDD85 /* NDS.oesystemplugin */,
 				945E42FB1517F2B500057D08 /* Arcade.oesystemplugin */,
+				986F321016D3EA8400BB38E2 /* Vectrex.oesystemplugin */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -3559,6 +3598,27 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
+		986F321216D3EA8400BB38E2 /* Vectrex */ = {
+			isa = PBXGroup;
+			children = (
+				986F322416D3F69A00BB38E2 /* OEVectrexSystemResponder.h */,
+				986F322516D3F69A00BB38E2 /* OEVectrexSystemResponder.m */,
+				986F322716D3F6FD00BB38E2 /* OEVectrexSystemResponderClient.h */,
+				986F321316D3EA8400BB38E2 /* Supporting Files */,
+			);
+			path = Vectrex;
+			sourceTree = "<group>";
+		};
+		986F321316D3EA8400BB38E2 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				986F322816D3FBF700BB38E2 /* Keyboard-Mappings.plist */,
+				986F321416D3EA8400BB38E2 /* Vectrex-Info.plist */,
+				986F321516D3EA8400BB38E2 /* InfoPlist.strings */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
 		C60CDDD511780DD100EB472F /* Documentation */ = {
 			isa = PBXGroup;
 			children = (
@@ -3785,16 +3845,17 @@
 			isa = PBXGroup;
 			children = (
 				945E42FD1517F2B500057D08 /* Arcade */,
-				94D7E8CB15073BA000FBDD85 /* NDS */,
-				822775521489471A00B19E27 /* GameGear */,
-				820EB74D1483F9D3008EC398 /* NeoGeoPocket */,
-				141554111442B3B300A01683 /* N64 */,
-				C6711821136368A30034379A /* Sega Master System */,
-				C64BB08F136478E600C1AB23 /* NES */,
-				C6480FC313648F670094FA33 /* SuperNES */,
 				C6B947B11364ECA700A425F0 /* GameBoy */,
-				C6B947E81365080B00A425F0 /* Genesis */,
 				C646574A13771F12002A4F70 /* GameBoy Advance */,
+				822775521489471A00B19E27 /* GameGear */,
+				C6B947E81365080B00A425F0 /* Genesis */,
+				141554111442B3B300A01683 /* N64 */,
+				94D7E8CB15073BA000FBDD85 /* NDS */,
+				820EB74D1483F9D3008EC398 /* NeoGeoPocket */,
+				C64BB08F136478E600C1AB23 /* NES */,
+				C6711821136368A30034379A /* Sega Master System */,
+				C6480FC313648F670094FA33 /* SuperNES */,
+				986F321216D3EA8400BB38E2 /* Vectrex */,
 			);
 			name = "System Plugins";
 			sourceTree = "<group>";
@@ -4141,6 +4202,24 @@
 			productReference = 94D7E8C915073BA000FBDD85 /* NDS.oesystemplugin */;
 			productType = "com.apple.product-type.bundle";
 		};
+		986F320F16D3EA8400BB38E2 /* Vectrex */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 986F321D16D3EA8400BB38E2 /* Build configuration list for PBXNativeTarget "Vectrex" */;
+			buildPhases = (
+				986F320C16D3EA8400BB38E2 /* Sources */,
+				986F320D16D3EA8400BB38E2 /* Frameworks */,
+				986F320E16D3EA8400BB38E2 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				986F321F16D3F44700BB38E2 /* PBXTargetDependency */,
+			);
+			name = Vectrex;
+			productName = Vectrex;
+			productReference = 986F321016D3EA8400BB38E2 /* Vectrex.oesystemplugin */;
+			productType = "com.apple.product-type.bundle";
+		};
 		C646574713771F12002A4F70 /* GameBoy Advance */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = C646575113771F12002A4F70 /* Build configuration list for PBXNativeTarget "GameBoy Advance" */;
@@ -4313,6 +4392,7 @@
 				8227753E148946DF00B19E27 /* GameGear */,
 				94D7E8C815073BA000FBDD85 /* NDS */,
 				945E42FA1517F2B500057D08 /* Arcade */,
+				986F320F16D3EA8400BB38E2 /* Vectrex */,
 				82C9C96F0F080C7F0071460B /* Distribution */,
 				37C802FF101564A300356EF3 /* Build & Copy OpenEmuBase */,
 				83F37141140BB166005A7353 /* Build SystemPlugins */,
@@ -4589,6 +4669,15 @@
 				94D7E8DD15073DB000FBDD85 /* nds_library.png in Resources */,
 				949628D2164F73D200952A86 /* Controller-Mappings.plist in Resources */,
 				C6AF284A164E424600681A06 /* Keyboard-Mappings.plist in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		986F320E16D3EA8400BB38E2 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				986F321716D3EA8400BB38E2 /* InfoPlist.strings in Resources */,
+				986F322916D3FBF700BB38E2 /* Keyboard-Mappings.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4996,6 +5085,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		986F320C16D3EA8400BB38E2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				986F322616D3F69A00BB38E2 /* OEVectrexSystemResponder.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C646574413771F12002A4F70 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -5199,6 +5296,16 @@
 			target = 94D7E8C815073BA000FBDD85 /* NDS */;
 			targetProxy = 94D7E8E8150741B500FBDD85 /* PBXContainerItemProxy */;
 		};
+		986F321F16D3F44700BB38E2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C67117ED136367240034379A /* OpenEmuSystem */;
+			targetProxy = 986F321E16D3F44700BB38E2 /* PBXContainerItemProxy */;
+		};
+		986F322216D3F49800BB38E2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 986F320F16D3EA8400BB38E2 /* Vectrex */;
+			targetProxy = 986F322116D3F49800BB38E2 /* PBXContainerItemProxy */;
+		};
 		C60FC00113522D9A00B53F64 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 82444BA00F51256C007C171B /* OpenEmuBase */;
@@ -5302,6 +5409,14 @@
 			isa = PBXVariantGroup;
 			children = (
 				94D7E8CF15073BA000FBDD85 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		986F321516D3EA8400BB38E2 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				986F321616D3EA8400BB38E2 /* en */,
 			);
 			name = InfoPlist.strings;
 			sourceTree = "<group>";
@@ -5731,6 +5846,54 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				INFOPLIST_FILE = "NDS/NDS-Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = oesystemplugin;
+			};
+			name = Release;
+		};
+		986F321916D3EA8400BB38E2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = NO;
+				GCC_PREFIX_HEADER = "";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				INFOPLIST_FILE = "Vectrex/Vectrex-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = oesystemplugin;
+			};
+			name = Debug;
+		};
+		986F321A16D3EA8400BB38E2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = YES;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = NO;
+				GCC_PREFIX_HEADER = "";
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				INFOPLIST_FILE = "Vectrex/Vectrex-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = oesystemplugin;
 			};
@@ -6245,6 +6408,15 @@
 			buildConfigurations = (
 				94D7E8D215073BA000FBDD85 /* Debug */,
 				94D7E8D315073BA000FBDD85 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		986F321D16D3EA8400BB38E2 /* Build configuration list for PBXNativeTarget "Vectrex" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				986F321916D3EA8400BB38E2 /* Debug */,
+				986F321A16D3EA8400BB38E2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
