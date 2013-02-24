@@ -65,9 +65,10 @@ VectrexGameCore *g_core;
 
 - (BOOL)loadFileAtPath:(NSString *)path
 {
-    osint_defaults();
+    osint_defaults();           //setup defaults
     openCart([path UTF8String]);
-    osint_gencolors();
+    osint_gencolors();          //setup colors
+    initSound();                //setup sound
     return YES;
 }
 
@@ -76,6 +77,7 @@ VectrexGameCore *g_core;
     dispatch_semaphore_signal(coreWaitToEndFrameSemaphore);
     
     [self.renderDelegate willRenderFrameOnAlternateThread];
+    
     dispatch_semaphore_wait(vectrexWaitToBeginFrameSemaphore, DISPATCH_TIME_FOREVER);
 }
 - (void)executeFrameSkippingFrame:(BOOL)skip
@@ -106,6 +108,11 @@ VectrexGameCore *g_core;
         [self.renderDelegate startRenderingOnAlternateThread];
 		osint_emuloop();
     }
+}
+
+- (void)updateSound:(uint8_t *)buff len:(int)len
+{
+    [[g_core ringBufferAtIndex:0] write:buff maxLength:len];
 }
 
 - (void)swapBuffers

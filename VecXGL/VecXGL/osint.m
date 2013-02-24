@@ -14,8 +14,6 @@
 // - VecXPS2 (Playsyation 2)
 // - VecXWin32 (Windows/DirectX) (unreleased)
 
-#import <OpenGL/gl.h>
-#import <GLUT/GLUT.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -25,6 +23,7 @@
 #include "wnoise.h"						// White noise waveform
 #include "overlay.h"					// overlay texture info
 #import "osint.h"
+#include "SDLStubs.h"
 #import "VectrexGameCore.h"
 
 //typedefs for integers
@@ -42,9 +41,9 @@ Uint8 AY_tone_enable[3];
 Uint8 AY_noise_enable[3];
 
 // SDL audio stuff
-/*SDL_AudioSpec reqSpec;
+SDL_AudioSpec reqSpec;
 SDL_AudioSpec givenSpec;
-SDL_AudioSpec *usedSpec;*/
+SDL_AudioSpec *usedSpec;
 Uint8 *pWave;
 
 static const char* cartname = NULL;
@@ -488,9 +487,10 @@ void osint_render (void)
 
 	glDisable(GL_BLEND);
 
-    //call game core to draw frame
-    [g_core swapBuffers];
-    [g_core videoInterrupt];
+    //call game core to draw frame and update sound
+    SDL_GL_SwapBuffers();
+    fillsoundbuffer(NULL, pWave, reqSpec.samples);
+    [g_core updateSound:pWave len:reqSpec.samples];
 }
 
 void osint_btnDown(OEVectrexButton btn) {
@@ -652,7 +652,7 @@ static void load_overlay(char *filename)
 #endif
 
 // sound mixer callback
-static void fillsoundbuffer(void *userdata, Uint8 *stream, int len) {
+void fillsoundbuffer(void *userdata, uint8_t *stream, int len) {
     // PS2 AY to SPU conversion:
     // SPU freq = (0x1000 * 213) / divisor
 
@@ -790,8 +790,20 @@ static void fillsoundbuffer(void *userdata, Uint8 *stream, int len) {
 		lastval = stream[i];
 	}
 
-	pWave = stream;
+	//pWave = stream;
 
+}
+
+void initSound(void) {
+    reqSpec.freq = 22050;						// Audio frequency in samples per second
+	reqSpec.format = 8;					// Audio data format (unsigned 8-bit samples)
+	reqSpec.channels = 1;						// Number of channels: 1 mono, 2 stereo
+	reqSpec.samples = 441;						// Audio buffer size in samples
+	reqSpec.callback = fillsoundbuffer;			// Callback function for filling the audio buffer
+	reqSpec.userdata = NULL;
+	usedSpec = &givenSpec;
+    
+    pWave = malloc(reqSpec.samples);
 }
 
 //========================================================================
@@ -832,25 +844,24 @@ int main(int argc, char *argv[] )
 		load_overlay(overlayname);
 #endif
 
-    //fix this audio stuff
-    /*
+    
 	// set up audio buffering
 	reqSpec.freq = 22050;						// Audio frequency in samples per second
-	reqSpec.format = 8;					// Audio data format
+	reqSpec.format = 8;					// Audio data format (unsigned 8-bit samples)
 	reqSpec.channels = 1;						// Number of channels: 1 mono, 2 stereo
 	reqSpec.samples = 441;						// Audio buffer size in samples
 	reqSpec.callback = fillsoundbuffer;			// Callback function for filling the audio buffer
 	reqSpec.userdata = NULL;
 	usedSpec = &givenSpec;
-     */
+    
 	/* Open the audio device */
 	//if ( SDL_OpenAudio(&reqSpec, usedSpec) < 0 ){
 	//  fprintf(stderr, "Couldn't open audio: %s\n", SDL_GetError());
 	//  exit(-1);
 	//}
 
-	//if(usedSpec == NULL)
-	//	usedSpec = &reqSpec;
+	if(usedSpec == NULL)
+		usedSpec = &reqSpec;
 
 	// Start playing audio
 	//SDL_PauseAudio(0);

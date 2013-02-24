@@ -2,7 +2,7 @@
 #define __OSINT_H
 #include "OEVectrexSystemResponderClient.h"
 
-#define EMU_TIMER			1/60*1000			// milliseconds per frame
+#define EMU_TIMER			1/30*1000			// milliseconds per frame
 #define DEFAULT_WIDTH		660
 #define DEFAULT_HEIGHT		820
 #define DEFAULT_LINEWIDTH	1.0f
@@ -16,6 +16,8 @@ void osint_gencolors (void);
 void osint_emuloop (void);
 void osint_btnDown(OEVectrexButton btn);
 void osint_btnUp(OEVectrexButton btn);
+void initSound(void);
+void fillsoundbuffer(void *userdata, uint8_t *stream, int len);
 
 #endif
 

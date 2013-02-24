@@ -38,6 +38,7 @@ OE_EXPORTED_CLASS
 
 - (void)swapBuffers;
 - (void)videoInterrupt;
+- (void)updateSound:(uint8_t *)buff len:(int)len;
 
 @end
 
