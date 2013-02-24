@@ -42,12 +42,9 @@ Uint8 AY_noise_enable[3];
 
 // SDL audio stuff
 SDL_AudioSpec reqSpec;
-SDL_AudioSpec givenSpec;
-SDL_AudioSpec *usedSpec;
 Uint8 *pWave;
 
 static const char* cartname = NULL;
-static char* overlayname = NULL;
 
 static long screen_x = DEFAULT_WIDTH;
 static long screen_y = DEFAULT_HEIGHT;
@@ -134,185 +131,6 @@ static void osint_load_bios(const char *filename) {
 	}
 
 	fclose(f);
-}
-
-static void osint_print_usage(FILE *f) {
-
-	fprintf(f, "Usage: vecxgl [options] [file]\n");
-	fprintf(f, "Options:\n");
-	fprintf(f, "  -b <file>         Load BIOS image from file\n");
-	fprintf(f, "                    If the -b parameter is omitted,\n");
-	fprintf(f, "                    a built-in BIOS image will be used.\n");
-	fprintf(f, "  -h                Display this help\n");
-	fprintf(f, "  -l <#>            Set line width (default is %f)\n", DEFAULT_LINEWIDTH);
-	fprintf(f, "  -o <file>         Load overlay from file\n");
-	fprintf(f, "  -t <#>            Overlay transparency (0.0 to 1.0, default is %g)\n", DEFAULT_OVERLAYTRANSPARENCY);
-	//fprintf(f, "  -v <######>       Vector color (hex, 6 digits, default is %02x%02x%02x)\n", DEFAULT_VECTORCOLOR_R, DEFAULT_VECTORCOLOR_G, DEFAULT_VECTORCOLOR_B);
-	fprintf(f, "  -x <xsize>        Window x size (default is %d)\n", DEFAULT_WIDTH);
-	fprintf(f, "  -y <ysize>        Window y size (default is %d)\n", DEFAULT_HEIGHT);
-}
-
-// Get next argument value in the 
-static char *getnextarg(int *index, int argc, char *argv[]) {
-
-	if (*index >= argc) {
-		return NULL;
-	} else {
-		char *result = argv[*index];
-		(*index)++;
-		return result;
-	}
-}
-
-// Set emulator options from command line arguments
-static void osint_parse_cmdline (int argc, char *argv[])
-{
-	// Most of this code from Thomas Mathys' vecxsdl
-	int index;
-	char *arg;
-	int have_xres = 0;
-	int have_yres = 0;
-
-	// scan for -h first
-	index = 0;
-	while ((arg = getnextarg(&index, argc, argv))) {
-		if ( 0 == strcmp(arg, "-h") ) {
-			osint_print_usage(stderr);
-			exit(0);
-		}
-	}
-
-	// parse other arguments
-	index = 1;
-	while ((arg = getnextarg(&index, argc, argv))) {
-
-		// -b
-		if ( 0 == strcmp(arg, "-b") ) {
-			arg = getnextarg(&index, argc, argv);
-			if (!arg) {
-				osint_print_usage(stderr);
-				fprintf(stderr, "\nError : No filename given for -b.\n");
-				exit(1);
-			} else {
-				osint_load_bios(arg);
-			}
-		}
-		// -l
-		else if ( 0 == strcmp(arg, "-l") ) {
-			arg = getnextarg(&index, argc, argv);
-			if (!arg) {
-				osint_print_usage(stderr);
-				fprintf(stderr, "\nError : No line width given for -l.\n");
-				exit(1);
-			} else {
-				line_width = (float) atof(arg);
-				if (line_width < 0) {
-					osint_print_usage(stderr);
-					fprintf(stderr, "\nError : Line width must be positive.\n");
-					exit(1);
-				}
-			}
-		}
-		// -o
-		else if ( 0 == strcmp(arg, "-o") ) {
-			arg = getnextarg(&index, argc, argv);
-			if (!arg) {
-				osint_print_usage(stderr);
-				fprintf(stderr, "\nError : no filename given for -o.\n");
-				exit(1);
-			} else {
-				overlayname = arg;
-			}
-		}
-		// -t
-		else if( 0 == strcmp(arg, "-t") ) {
-			arg = getnextarg(&index, argc, argv);
-			if (!arg) {
-				osint_print_usage(stderr);
-				fprintf(stderr, "\nError : no transparency given for -t.\n");
-				exit(1);
-			} else {
-				float v = (float) atof(arg);
-				if ( (v < 0) || (v > 1) ) {
-					osint_print_usage(stderr);
-					fprintf(stderr, "\nError : overlay transparency must be in the range [0.0,1.0].\n");
-					exit(1);
-				} else {
-					overlay_transparency = v;
-				}
-			}
-		}
-/*		// -v
-		else if ( 0 == strcmp(arg, "-v") ) {
-			arg = getnextarg(&index, argc, argv);
-			if (!arg) {
-				printusage(stderr);
-				fprintf(stderr, "\nError : no color given for -v.\n");
-				quit(1);
-			} else {
-				unsigned long v;
-				char *c;
-				v = strtoul(arg, &c, 16);
-				if ( (strlen(arg) != 6) || (*c != 0) ) {
-					printusage(stderr);
-					fprintf(stderr, "\nError : invalid format for vector color.\n");
-					quit(1);
-				} else {
-					args->vectorcolor[0] = (unsigned char) ((v >> 16) & 255);
-					args->vectorcolor[1] = (unsigned char) ((v >> 8) & 255);
-					args->vectorcolor[2] = (unsigned char) (v & 255);
-				}
-			}
-		}
-*/		// -x
-		else if ( 0 == strcmp(arg, "-x") ) {
-			arg = getnextarg(&index, argc, argv);
-			if (!arg) {
-				osint_print_usage(stderr);
-				fprintf(stderr, "\nError : no window width given for -x.\n");
-				exit(1);
-			} else {
-				screen_x = atoi(arg);
-				have_xres = 1;
-				if (screen_x < 0) {
-					osint_print_usage(stderr);
-					fprintf(stderr, "\nError : window width must be positive.\n");
-					exit(1);
-				}
-			}
-		}
-		// -y
-		else if ( 0 == strcmp(arg, "-y") ) {
-			arg = getnextarg(&index, argc, argv);
-			if (!arg) {
-				osint_print_usage(stderr);
-				fprintf(stderr, "\nError : no window height given for -y.\n");
-				exit(1);
-			} else {
-				screen_y = atoi(arg);
-				have_yres = 1;
-				if (screen_y < 0) {
-					osint_print_usage(stderr);
-					fprintf(stderr, "\nError : window height must be positive.\n");
-					exit(1);
-				}
-			}
-		}
-		else {
-			cartname = arg;
-		}
-	}
-
-	// if only x or only y given, calculate the other,
-	// so that the window gets a sane aspect ratio.
-	if ( (have_xres) && (!have_yres) ) {
-		screen_y = screen_x*DEFAULT_HEIGHT/DEFAULT_WIDTH;
-	}
-	else if ( (!have_xres) && (have_yres) ) {
-		screen_x = screen_y*DEFAULT_WIDTH/DEFAULT_HEIGHT;
-	}
-	// screen width or height may have changed, so need to update scale
-	osint_updatescale();
 }
 
 static void osint_maskinfo (int mask, int *shift, int *precision)
@@ -431,30 +249,13 @@ void osint_render (void)
 	// blend lines with overlay image
 	if (g_overlay.width > 0) {
 		glEnable(GL_BLEND);
-		//glBlendFunc(GL_DST_COLOR, GL_SRC_COLOR);
 		glBlendFunc(GL_DST_COLOR, GL_ONE);
 	}
 
     glBegin( GL_LINES );
 
-//	// undraw lines from previous frame
-//	// (JH - We actually draw the erase vectors to get a blurry effect)
-//	for (v = 0; v < vector_erse_cnt; v++) {
-//		if (vectors_erse[v].color != VECTREX_COLORS) {
-////				osint_line (vectors_erse[v].x0, vectors_erse[v].y0,
-////							vectors_erse[v].x1, vectors_erse[v].y1, 0);
-//			c = color_set[vectors_draw[v].color];
-//			glColor3f( c*0.5f, c*0.5f, c*0.5f );
-//			glVertex3i( vectors_erse[v].x0, vectors_erse[v].y0, 0 );
-//			glVertex3i( vectors_erse[v].x1, vectors_erse[v].y1, 0 );
-//		}
-//	}
-
 	// draw lines for this frame
 	for (v = 0; v < vector_draw_cnt; v++) {
-//		osint_line (vectors_draw[v].x0, vectors_draw[v].y0,
-//					vectors_draw[v].x1, vectors_draw[v].y1,
-//					vectors_draw[v].color);
 		c = color_set[vectors_draw[v].color];
         
 		glColor4f( c, c, c, 0.75f );
@@ -468,9 +269,6 @@ void osint_render (void)
 	// we have to redraw points, because zero-length line doesn't get drawn
 	glBegin(GL_POINTS);
 	for (v = 0; v < vector_draw_cnt; v++) {
-//		osint_line (vectors_draw[v].x0, vectors_draw[v].y0,
-//					vectors_draw[v].x1, vectors_draw[v].y1,
-//					vectors_draw[v].color);
 		c = color_set[vectors_draw[v].color];
 		glColor3f( c,c,c );
 		glVertex3i( (int)vectors_draw[v].x0, (int)vectors_draw[v].y0, 0 );
@@ -481,7 +279,9 @@ void osint_render (void)
 
 	glDisable(GL_BLEND);
 
-    fillsoundbuffer(NULL, pWave, reqSpec.samples);
+    
+    //Fill buffer and call core to update sound
+    fillsoundbuffer(pWave, reqSpec.samples);
     [g_core updateSound:pWave len:reqSpec.samples];
 }
 
@@ -547,80 +347,6 @@ void osint_btnUp(OEVectrexButton btn) {
     }
 }
 
-void osint_emuloop (void)
-{
-    int running = 1;
-	
-	// reset the vectrex hardware
-	vecx_reset();
-
-	while (running) {
-        
-        /*uint8_t *buttons = g_core->padData[0];
-        
-        if(buttons[OEVectrexButton1]) {
-            snd_regs[14] &= ~0x01;
-        }
-        else {
-            snd_regs[14] |= 0x01;
-        }
-        
-        if(buttons[OEVectrexButton2]) {
-            snd_regs[14] &= ~0x02;
-        }
-        else {
-            snd_regs[14] |= 0x02;
-        }
-        
-        if(buttons[OEVectrexButton3]) {
-            snd_regs[14] &= ~0x04;
-        }
-        else {
-            snd_regs[14] |= 0x04;
-        }
-        
-        if(buttons[OEVectrexButton4]) {
-            snd_regs[14] &= ~0x08;
-        }
-        else {
-            snd_regs[14] |= 0x08;
-        }
-        
-        if(buttons[OEVectrexAnalogUp]) {
-            alg_jch1 = 0xFF;
-        }
-        else {
-            alg_jch1 = 0x80;
-        }
-        
-        if(buttons[OEVectrexAnalogDown]) {
-            alg_jch1 = 0x00;
-        }
-        else {
-            alg_jch1 = 0x80;
-        }
-        
-        if(buttons[OEVectrexAnalogLeft]) {
-            alg_jch0 = 0x00;
-        }
-        else {
-            alg_jch0 = 0x80;
-        }
-        
-        if(buttons[OEVectrexAnalogRight]) {
-            alg_jch0 = 0xFF;
-        }
-        else {
-            alg_jch0 = 0x80;
-        }*/
-
-		// emulate this "frame" (if not paused)
-		if(running) {
-			vecx_emu ((VECTREX_MHZ / 1000) * EMU_TIMER, 0);
-        }
-	}
-}
-
 #ifdef ENABLE_OVERLAY
 // load overlay and set it as current texture
 static void load_overlay(char *filename)
@@ -644,7 +370,7 @@ static void load_overlay(char *filename)
 #endif
 
 // sound mixer callback
-void fillsoundbuffer(void *userdata, uint8_t *stream, int len) {
+void fillsoundbuffer(uint8_t *stream, int len) {
     // PS2 AY to SPU conversion:
     // SPU freq = (0x1000 * 213) / divisor
 
@@ -697,48 +423,18 @@ void fillsoundbuffer(void *userdata, uint8_t *stream, int len) {
 	step[0] = 441.0f*(float)AY_spufreq[0]/(float)22050;
 	step[1] = 441.0f*(float)AY_spufreq[1]/(float)22050;
 	step[2] = 441.0f*(float)AY_spufreq[2]/(float)22050;
-	//step[0] = 660.0f*(float)AY_spufreq[0]/(float)22050;
-	//step[1] = 660.0f*(float)AY_spufreq[1]/(float)22050;
-	//step[2] = 660.0f*(float)AY_spufreq[2]/(float)22050;
 	noisestep = (441.0f * AY_noisefreq) / (float)22050;
-	//noisestep = (660.0f * AY_noisefreq) / (float)22050;
 	flip[0] = step[0];
 	flip[1] = step[1];
 	flip[2] = step[2];
 	val[0] = AY_vol[0];
 	val[1] = AY_vol[1];
 	val[2] = AY_vol[2];
-
-/* JH - REFERENCE CODE FROM VECXPS2
-	    // update tone voices
-    for(i=0; i<3; i++) {
-//        spu_remote(1,spuSetCore,1,0,0,0,0,0);
-        voice_att.mask = SPU_VOICE_PITCH | SPU_VOICE_VOL_LEFT | SPU_VOICE_VOL_RIGHT;
-        voice_att.voice = SPU_VOICE_X(i);
-        voice_att.pitch = spufreq[i];
-        voice_att.vol.left = voice_att.vol.right = 0;
-        if( !tone_enable[i] ) 
-            voice_att.vol.left = voice_att.vol.right = vol[i];
-        spu_remote(1,spuSetVoiceAttr,(u32)&voice_att,sizeof(struct spu_voice_attr),0,0,0,0);
-    }
-
-
-    // update noise voices
-    for(i=0; i<3; i++) {
-        voice_att.mask = SPU_VOICE_PITCH | SPU_VOICE_VOL_LEFT | SPU_VOICE_VOL_RIGHT;
-        voice_att.voice = SPU_VOICE_X(i+3);
-        voice_att.pitch = noisefreq;
-        voice_att.vol.left = voice_att.vol.right = 0;
-        if( !noise_enable[i] ) 
-            voice_att.vol.left = voice_att.vol.right = vol[i];
-        spu_remote(1,spuSetVoiceAttr,(u32)&voice_att,sizeof(struct spu_voice_attr),0,0,0,0);
-    }
-*/
+    
 	// fill buffer
 	lastval = 0;
 	for(i=0; i<len; i++)
 	{
-		//stream[i] = usedSpec->silence;
 		stream[i] = 0;
 
 		// do tones
@@ -781,94 +477,14 @@ void fillsoundbuffer(void *userdata, uint8_t *stream, int len) {
 		stream[i] = (stream[i] + lastval) >> 1;				
 		lastval = stream[i];
 	}
-
-	//pWave = stream;
-
 }
 
 void initSound(void) {
     reqSpec.freq = 22050;						// Audio frequency in samples per second
 	reqSpec.format = 8;					// Audio data format (unsigned 8-bit samples)
 	reqSpec.channels = 1;						// Number of channels: 1 mono, 2 stereo
-	reqSpec.samples = 735;						// Audio buffer size in samples
-	reqSpec.callback = fillsoundbuffer;			// Callback function for filling the audio buffer
+	reqSpec.samples = 441;						// Audio buffer size in samples
 	reqSpec.userdata = NULL;
-	usedSpec = &givenSpec;
     
     pWave = malloc(reqSpec.samples);
-}
-
-//========================================================================
-// main()
-//========================================================================
-
-int main(int argc, char *argv[] )
-{
-	char msg[1024];
-	FILE *cartfile;
-
-
-
-	// get defaults and parse command-line params
-	if (osint_defaults ()) {
-		return 1;
-	}
-
-	osint_parse_cmdline (argc, argv);
-
-	cartfile = fopen (cartname, "rb");
-
-	if (cartfile != NULL) {
-		fread (cart, 1, sizeof (cart), cartfile);
-		fclose (cartfile);
-	} else {
-		sprintf (msg, "cannot open '%s'", cartname);
-		fprintf(stderr, "%s", msg);
-	}
-
-	/* determine a set of colors to use based */
-	osint_gencolors ();
-
-#ifdef ENABLE_OVERLAY
-	// Load overlay if neccessary (TGA 24-bit uncompressed)
-	g_overlay.width = 0;
-	if (overlayname)
-		load_overlay(overlayname);
-#endif
-
-    
-	// set up audio buffering
-	reqSpec.freq = 22050;						// Audio frequency in samples per second
-	reqSpec.format = 8;					// Audio data format (unsigned 8-bit samples)
-	reqSpec.channels = 1;						// Number of channels: 1 mono, 2 stereo
-	reqSpec.samples = 441;						// Audio buffer size in samples
-	reqSpec.callback = fillsoundbuffer;			// Callback function for filling the audio buffer
-	reqSpec.userdata = NULL;
-	usedSpec = &givenSpec;
-    
-	/* Open the audio device */
-	//if ( SDL_OpenAudio(&reqSpec, usedSpec) < 0 ){
-	//  fprintf(stderr, "Couldn't open audio: %s\n", SDL_GetError());
-	//  exit(-1);
-	//}
-
-	if(usedSpec == NULL)
-		usedSpec = &reqSpec;
-
-	// Start playing audio
-	//SDL_PauseAudio(0);
-
-	/* message loop handler and emulator code */
-
-    
-    //actually rum emulator
-	osint_emuloop ();
-
-
-    /* Exit program. */
-    exit( 0 );
-
-	return 0;
-// END OF MAIN!!!
-
 }

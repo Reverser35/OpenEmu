@@ -17,6 +17,4 @@ typedef struct{
     void *userdata;
 } SDL_AudioSpec;
 
-void SDL_GL_SwapBuffers(void);
-
 #endif

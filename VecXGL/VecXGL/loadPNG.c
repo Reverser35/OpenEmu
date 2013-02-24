@@ -6,8 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "SDL.h"
-#include "SDL_OpenGL.h"
+#include "SDLStubs.h"
 #include "overlay.h"
 //#include "../libpng-1.2.8/include/png.h"
 
