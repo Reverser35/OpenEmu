@@ -7,12 +7,11 @@
 // RLE-decompressing portion by James Higgs 2007
 //
 
-#import <OpenGL/gl.h>
-#import <GLUT/GLUT.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include "overlay.h"
+#include "SDLStubs.h"
 
 #ifdef ENABLE_OVERLAY
 extern TextureImage g_overlay;										// Storage For One Texture

@@ -5,6 +5,8 @@
 // disable this to disable overlays
 #define ENABLE_OVERLAY
 
+#include "SDLStubs.h"
+
 typedef struct								// Create A Structure
 {
 	GLubyte	*imageData;						// Image Data (Up To 32 Bits)
