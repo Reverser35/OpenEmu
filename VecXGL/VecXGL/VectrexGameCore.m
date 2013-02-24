@@ -87,7 +87,6 @@ VectrexGameCore *g_core;
     if(!isRunning)
     {
         [super startEmulation];
-
         vecx_reset();
     }
 }
@@ -100,11 +99,6 @@ VectrexGameCore *g_core;
 - (void)updateSound:(uint8_t *)buff len:(int)len
 {
     [[g_core ringBufferAtIndex:0] write:buff maxLength:len];
-    /*for (int i = 0; i < len; ++i)
-    {
-        uint16_t sample = ((double)buff[i] / UINT8_MAX) * UINT16_MAX;
-        [[g_core ringBufferAtIndex:0] write:&sample maxLength:2];
-    }*/
 }
 
 - (void)swapBuffers
