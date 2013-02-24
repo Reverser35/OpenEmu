@@ -347,13 +347,6 @@ void osint_gencolors (void)
 	}
 }
 
-static void osint_clearscreen (void)
-{
-    // Clear color buffer
-    glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
-    glClear( GL_COLOR_BUFFER_BIT );
-}
-
 /*
     JH - there some were nice low-level line drawing routines here,
          which have been replaced by OpenGL calls
@@ -409,7 +402,7 @@ void osint_render (void)
 		glEnd();
 		glDisable(GL_TEXTURE_2D);
 	} else {
-	    glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
+	    glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
 		glClear(GL_COLOR_BUFFER_BIT);
 	}
 #else
@@ -463,6 +456,7 @@ void osint_render (void)
 //					vectors_draw[v].x1, vectors_draw[v].y1,
 //					vectors_draw[v].color);
 		c = color_set[vectors_draw[v].color];
+        
 		glColor4f( c, c, c, 0.75f );
 		glVertex3i( (int)vectors_draw[v].x0, (int)vectors_draw[v].y0, 0 );
 		glVertex3i( (int)vectors_draw[v].x1, (int)vectors_draw[v].y1, 0 );
@@ -487,8 +481,6 @@ void osint_render (void)
 
 	glDisable(GL_BLEND);
 
-    //call game core to draw frame and update sound
-    SDL_GL_SwapBuffers();
     fillsoundbuffer(NULL, pWave, reqSpec.samples);
     [g_core updateSound:pWave len:reqSpec.samples];
 }

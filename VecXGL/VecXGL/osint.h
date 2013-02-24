@@ -2,9 +2,9 @@
 #define __OSINT_H
 #include "OEVectrexSystemResponderClient.h"
 
-#define EMU_TIMER			1/30*1000			// milliseconds per frame
-#define DEFAULT_WIDTH		660
-#define DEFAULT_HEIGHT		820
+#define EMU_TIMER			1.0/50.0*1000.0			// milliseconds per frame
+#define DEFAULT_WIDTH		330
+#define DEFAULT_HEIGHT		410
 #define DEFAULT_LINEWIDTH	1.0f
 #define DEFAULT_OVERLAYTRANSPARENCY	0.5f
 

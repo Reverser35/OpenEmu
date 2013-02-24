@@ -37,9 +37,6 @@
 {
     int videoWidth, videoHeight;
     double sampleRate;
-    
-    dispatch_semaphore_t vectrexWaitToBeginFrameSemaphore;
-    dispatch_semaphore_t coreWaitToEndFrameSemaphore;
 }
 @end
 
@@ -50,12 +47,9 @@ VectrexGameCore *g_core;
 
 - (id)init
 {
-    if (self = [super init]) {
-        vectrexWaitToBeginFrameSemaphore = dispatch_semaphore_create(0);
-        coreWaitToEndFrameSemaphore    = dispatch_semaphore_create(0);
-        
-        videoWidth = 660;
-        videoHeight = 820;
+    if (self = [super init]) {        
+        videoWidth = 330;
+        videoHeight = 410;
         sampleRate = 22050;
     }
     
@@ -74,16 +68,13 @@ VectrexGameCore *g_core;
 
 - (void)videoInterrupt
 {
-    dispatch_semaphore_signal(coreWaitToEndFrameSemaphore);
-    
-    [self.renderDelegate willRenderFrameOnAlternateThread];
-    
-    dispatch_semaphore_wait(vectrexWaitToBeginFrameSemaphore, DISPATCH_TIME_FOREVER);
+
 }
+
 - (void)executeFrameSkippingFrame:(BOOL)skip
 {
-    dispatch_semaphore_signal(vectrexWaitToBeginFrameSemaphore);
-    dispatch_semaphore_wait(coreWaitToEndFrameSemaphore, DISPATCH_TIME_FOREVER);
+    vecx_emu ((VECTREX_MHZ / 1000) * EMU_TIMER, 0);    
+    glFlush();
 }
 
 - (void)executeFrame
@@ -96,28 +87,29 @@ VectrexGameCore *g_core;
     if(!isRunning)
     {
         [super startEmulation];
-        [self.renderDelegate willRenderOnAlternateThread];
-        [NSThread detachNewThreadSelector:@selector(vectrexEmuThread) toTarget:self withObject:nil];
+
+        vecx_reset();
     }
 }
 
-- (void)vectrexEmuThread
+- (NSUInteger)audioBitDepth
 {
-    @autoreleasepool
-    {
-        [self.renderDelegate startRenderingOnAlternateThread];
-		osint_emuloop();
-    }
+    return 8;
 }
 
 - (void)updateSound:(uint8_t *)buff len:(int)len
 {
     [[g_core ringBufferAtIndex:0] write:buff maxLength:len];
+    /*for (int i = 0; i < len; ++i)
+    {
+        uint16_t sample = ((double)buff[i] / UINT8_MAX) * UINT16_MAX;
+        [[g_core ringBufferAtIndex:0] write:&sample maxLength:2];
+    }*/
 }
 
 - (void)swapBuffers
 {
-    [self.renderDelegate didRenderFrameOnAlternateThread];
+
 }
 
 - (void)setupEmulation
@@ -179,7 +171,7 @@ VectrexGameCore *g_core;
 
 - (GLenum)pixelType
 {
-    return GL_UNSIGNED_INT_8_8_8_8_REV;
+    return GL_UNSIGNED_INT_8_8_8_8;
 }
 
 - (GLenum)internalPixelFormat
@@ -194,7 +186,7 @@ VectrexGameCore *g_core;
 
 - (NSTimeInterval)frameInterval
 {
-    return 30;
+    return 50;
 }
 
 - (NSUInteger)channelCount
