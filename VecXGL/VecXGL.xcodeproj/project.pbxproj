@@ -33,6 +33,7 @@
 		986F328316D40A9100BB38E2 /* readme_old.txt in Resources */ = {isa = PBXBuildFile; fileRef = 986F327916D40A9100BB38E2 /* readme_old.txt */; };
 		986F328516D40A9100BB38E2 /* vecx.m in Sources */ = {isa = PBXBuildFile; fileRef = 986F327C16D40A9100BB38E2 /* vecx.m */; };
 		988FD85016D750180069F4DA /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 988FD84F16D750170069F4DA /* GLUT.framework */; };
+		98C99FD916D83B4900E243BD /* SDLStubs.m in Sources */ = {isa = PBXBuildFile; fileRef = 98C99FD816D83B4800E243BD /* SDLStubs.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -72,6 +73,8 @@
 		986F327D16D40A9100BB38E2 /* vecx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vecx.h; sourceTree = "<group>"; };
 		986F327E16D40A9100BB38E2 /* wnoise.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wnoise.h; sourceTree = "<group>"; };
 		988FD84F16D750170069F4DA /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
+		98C99FD716D83B4800E243BD /* SDLStubs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SDLStubs.h; sourceTree = "<group>"; };
+		98C99FD816D83B4800E243BD /* SDLStubs.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SDLStubs.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -134,6 +137,8 @@
 				986F324B16D4005900BB38E2 /* OEVectrexSystemResponderClient.h */,
 				986F324F16D4014B00BB38E2 /* VectrexGameCore.h */,
 				986F325016D4014B00BB38E2 /* VectrexGameCore.m */,
+				98C99FD716D83B4800E243BD /* SDLStubs.h */,
+				98C99FD816D83B4800E243BD /* SDLStubs.m */,
 				986F327016D40A6300BB38E2 /* src */,
 				986F323D16D3FF4F00BB38E2 /* Supporting Files */,
 			);
@@ -253,6 +258,7 @@
 				986F328116D40A9100BB38E2 /* loadTGA.c in Sources */,
 				986F328216D40A9100BB38E2 /* osint.m in Sources */,
 				986F328516D40A9100BB38E2 /* vecx.m in Sources */,
+				98C99FD916D83B4900E243BD /* SDLStubs.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
