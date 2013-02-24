@@ -412,4 +412,16 @@ static NSTimeInterval defaultTimeInterval = 60.0;
 {
     return NO;
 }
+
+#pragma mark Cheats
+
+- (BOOL)canCheat
+{
+    return NO;
+}
+
+-(void)setCheat:(NSString *)code setType:(NSString *)type setEnabled:(BOOL)enabled
+{
+}
+
 @end

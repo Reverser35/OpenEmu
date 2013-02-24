@@ -230,6 +230,11 @@ static inline NSString *NSStringFromOEIntRect(OEIntRect r)
 - (BOOL)saveStateToFileAtPath:(NSString *)fileName;
 - (BOOL)loadStateFromFileAtPath:(NSString *)fileName;
 
+#pragma mark -
+#pragma mark Cheats - Optional
+- (BOOL)canCheat;
+- (void)setCheat:(NSString *)code setType:(NSString *)type setEnabled:(BOOL)enabled;
+
 // ============================================================================
 // End Abstract methods.
 // ============================================================================

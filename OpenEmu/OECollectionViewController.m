@@ -63,6 +63,7 @@
 #import "OESidebarController.h"
 #import "OETableView.h"
 
+#import "OECollectionDebugWindowController.h"
 #pragma mark - Public variables
 
 NSString * const OELastGridSizeKey       = @"lastGridSize";
@@ -165,7 +166,7 @@ static NSArray *OE_defaultSortDescriptors;
     NSManagedObjectContext *context = [[OELibraryDatabase defaultDatabase] managedObjectContext];
     //[gamesController bind:@"managedObjectContext" toObject:context withKeyPath:@"" options:nil];
 
-    OE_defaultSortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"name" ascending:YES]];
+    OE_defaultSortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"name" ascending:YES selector:@selector(caseInsensitiveCompare:)]];
     
     [gamesController setManagedObjectContext:context];
     [gamesController setEntityName:@"Game"];
@@ -388,7 +389,7 @@ static NSArray *OE_defaultSortDescriptors;
     if(reloadListView)
         [listView reloadData];
     else
-        [gridView reloadData];
+        [gridView reloadCellsAtIndexes:[gridView indexesForVisibleCells]];
     
     if(_selectedViewTag == tag && tag != OEBlankSlateTag) return;
 
@@ -554,6 +555,12 @@ static NSArray *OE_defaultSortDescriptors;
 {
     [gamesController setSelectionIndexes:[view selectionIndexes]];
     _stateRewriteRequired = YES;
+    
+    if([[NSUserDefaults standardUserDefaults] boolForKey:OEDebugCollectionView] && [[[self gamesController] selectedObjects] count])
+    {
+        [[OECollectionDebugWindowController sharedController] setRepresentedObject:[[[self gamesController] selectedObjects] objectAtIndex:0]];
+        [[[OECollectionDebugWindowController sharedController] window] makeKeyAndOrderFront:self];
+    }
 }
 
 - (NSDragOperation)gridView:(OEGridView *)gridView validateDrop:(id<NSDraggingInfo>)draggingInfo
@@ -668,6 +675,11 @@ static NSArray *OE_defaultSortDescriptors;
 
 #pragma mark -
 #pragma mark Context Menu
+- (BOOL)validateMenuItem:(NSMenuItem *)menuItem
+{
+    return [[self libraryController] validateMenuItem:menuItem];
+}
+
 - (NSMenu*)OE_menuForItemsAtIndexes:(NSIndexSet*)indexes
 {
     NSMenu *menu = [[NSMenu alloc] init];
@@ -1201,8 +1213,6 @@ static NSArray *OE_defaultSortDescriptors;
     {
         return YES;
     }
-    
-    
     return YES;
 }
 
@@ -1225,6 +1235,12 @@ static NSArray *OE_defaultSortDescriptors;
     _listViewSelectionChangeDate = [NSDate date];
 
     if([[listView selectedRowIndexes] count] == 1) [coverFlowView setSelectedIndex:[[listView selectedRowIndexes] firstIndex]];
+    
+    if([[NSUserDefaults standardUserDefaults] boolForKey:OEDebugCollectionView] && [[[self gamesController] selectedObjects] count])
+    {
+        [[OECollectionDebugWindowController sharedController] setRepresentedObject:[[[self gamesController] selectedObjects] objectAtIndex:0]];
+        [[[OECollectionDebugWindowController sharedController] window] makeKeyAndOrderFront:self];
+    }
 }
 
 - (BOOL)tableView:(NSTableView *)tableView shouldTrackCell:(NSCell *)cell forTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row
@@ -1297,7 +1313,7 @@ static NSArray *OE_defaultSortDescriptors;
 
 #pragma mark -
 #pragma mark Private
-#define reloadDelay 0.1
+#define reloadDelay 0.5
 - (void)OE_managedObjectContextDidUpdate:(NSNotification *)notification
 {
     DLog();

@@ -121,6 +121,11 @@ extern NSString *const OEGameViewControllerROMKey;
 - (void)setPauseEmulation:(BOOL)pauseEmulation;
 - (BOOL)isEmulationRunning;
 
+#pragma mark - Cheats
+- (IBAction)addCheat:(id)sender;
+- (BOOL)cheatSupport;
+- (void)setCheatWithCodeAndType:(NSString *)code setType:(NSString *)type setEnabled:(BOOL)enabled;
+
 #pragma mark - Saving States
 - (IBAction)saveState:(id)sender;
 - (IBAction)quickSave:(id)sender;
