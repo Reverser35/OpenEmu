@@ -798,7 +798,7 @@ void initSound(void) {
     reqSpec.freq = 22050;						// Audio frequency in samples per second
 	reqSpec.format = 8;					// Audio data format (unsigned 8-bit samples)
 	reqSpec.channels = 1;						// Number of channels: 1 mono, 2 stereo
-	reqSpec.samples = 441;						// Audio buffer size in samples
+	reqSpec.samples = 735;						// Audio buffer size in samples
 	reqSpec.callback = fillsoundbuffer;			// Callback function for filling the audio buffer
 	reqSpec.userdata = NULL;
 	usedSpec = &givenSpec;
