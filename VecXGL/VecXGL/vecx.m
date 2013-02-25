@@ -116,10 +116,6 @@ VECXState * saveVecxState() {
 	long vecDrawInfo[] = {vector_draw_cnt, vector_erse_cnt};
 	memcpy(state->vecDrawInfo, vecDrawInfo, sizeof(long) * 2);
 	
-	memcpy(state->vectorsSet, vectors_set, sizeof(vector_t) * (2 * VECTOR_CNT));
-	
-	memcpy(state->vectorHash, vector_hash, sizeof(long) * VECTOR_HASH);
-	
 	return state;
 }
 
@@ -187,10 +183,6 @@ void loadVecxState(VECXState *state) {
 	
 	vector_draw_cnt = (state->vecDrawInfo)[0];
 	vector_erse_cnt = (state->vecDrawInfo)[1];
-	
-	memcpy(vectors_set, state->vectorsSet, sizeof(vector_t) * (2 * VECTOR_CNT));
-	
-	memcpy(vector_hash, state->vectorHash, sizeof(long) * VECTOR_HASH);
 }
 
 /* update the snd chips internal registers when via_ora/via_orb changes */

@@ -54,8 +54,6 @@ typedef struct VECXState {
 	long vectorPoints[6];
 	unsigned char vecColor;
 	long vecDrawInfo[2];
-	vector_t vectorsSet[2 * VECTOR_CNT];
-	long vectorHash[VECTOR_HASH];
 } VECXState;
 
 extern unsigned char ram[1024];

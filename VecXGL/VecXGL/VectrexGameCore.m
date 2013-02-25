@@ -128,7 +128,7 @@ VectrexGameCore *g_core;
     
     VECXState *state = saveVecxState();
     
-    long bytesWritten = fwrite(state, sizeof(VECXState), 1, saveFile);
+    long bytesWritten = fwrite(state, sizeof(char), sizeof(VECXState), saveFile);
     
     if(bytesWritten != sizeof(VECXState))
     {
@@ -153,9 +153,9 @@ VectrexGameCore *g_core;
         return NO;
     }
     
-    VECXState state;
+    VECXState *state = malloc(sizeof(VECXState));
     
-    if(!fread(&state, sizeof(VECXState), 1, saveFile))
+    if(!fread(state, sizeof(char), sizeof(VECXState), saveFile))
     {
         NSLog(@"Couldn't read file");
         return NO;
@@ -163,7 +163,9 @@ VectrexGameCore *g_core;
     
     fclose(saveFile);
     
-    loadVecxState(&state);
+    loadVecxState(state);
+    
+    free(state);
     
     return YES;
 }
