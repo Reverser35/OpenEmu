@@ -223,6 +223,7 @@ NSString *const OEHelperProcessErrorDomain = @"OEHelperProcessErrorDomain";
 
     // Unbind
     glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
+    glDisable(GL_TEXTURE_RECTANGLE_ARB);
 
     // Cache our new surfaceID as soon as possible, and we only need to set it on size changes and re-creation.
     surfaceID = IOSurfaceGetID(surfaceRef);
@@ -623,7 +624,7 @@ NSString *const OEHelperProcessErrorDomain = @"OEHelperProcessErrorDomain";
     if (!archive || [archive numberOfEntries] > 1)
         return aPath;
 
-    if (![archive entryHasSize:0] || [archive entryIsEncrypted:0] || [archive entryIsDirectory:0] || [archive entryIsArchive:0])
+    if (![archive entryHasSize:0] || ![archive uncompressedSizeOfEntry:0] || [archive entryIsEncrypted:0] || [archive entryIsDirectory:0] || [archive entryIsArchive:0])
         return aPath;
 
     NSFileManager *fm = [NSFileManager new];
