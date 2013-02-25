@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include "e6809.h"
 
 /* code assumptions:
@@ -59,6 +60,24 @@ static unsigned reg_cc;
 /* flag to see if interrupts should be handled (sync/cwai). */
 
 static unsigned irq_status;
+
+void saveCPUState(unsigned *regArray) {
+	unsigned currentRegs[] = {reg_x, reg_y, reg_u, reg_s, reg_a, reg_b, reg_dp, reg_cc, irq_status, reg_pc};
+	memcpy(regArray, currentRegs, sizeof(unsigned) * 10);
+}
+
+void loadCPUState(unsigned *savedRegs) {
+	reg_x = savedRegs[0];
+	reg_y = savedRegs[1];
+	reg_u = savedRegs[2];
+	reg_s = savedRegs[3];
+	reg_a = savedRegs[4];
+	reg_b = savedRegs[5];
+	reg_dp = savedRegs[6];
+	reg_cc = savedRegs[7];
+	irq_status = savedRegs[8];
+	reg_pc = savedRegs[9];
+}
 
 static unsigned *rptr_xyus[4] = {
 	&reg_x,

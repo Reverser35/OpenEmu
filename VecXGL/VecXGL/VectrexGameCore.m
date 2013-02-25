@@ -124,11 +124,47 @@ VectrexGameCore *g_core;
 
 - (BOOL)saveStateToFileAtPath:(NSString *)fileName
 {
+    FILE *saveFile = fopen([fileName UTF8String], "wb");
+    
+    VECXState *state = saveVecxState();
+    
+    long bytesWritten = fwrite(state, sizeof(VECXState), 1, saveFile);
+    
+    if(bytesWritten != sizeof(VECXState))
+    {
+        NSLog(@"Couldn't write state");
+        return NO;
+    }
+    
+    fclose(saveFile);
+    
+    free(state);
+    
     return YES;
 }
 
 - (BOOL)loadStateFromFileAtPath:(NSString *)fileName
 {
+    FILE *saveFile = fopen([fileName UTF8String], "rb");
+    
+    if(saveFile == NULL)
+    {
+        NSLog(@"Could not open state file");
+        return NO;
+    }
+    
+    VECXState state;
+    
+    if(!fread(&state, sizeof(VECXState), 1, saveFile))
+    {
+        NSLog(@"Couldn't read file");
+        return NO;
+    }
+    
+    fclose(saveFile);
+    
+    loadVecxState(&state);
+    
     return YES;
 }
 

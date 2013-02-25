@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include "e6809.h"
 #include "vecx.h"
 #include "osint.h"
@@ -8,7 +9,7 @@
 
 unsigned char rom[8192];
 unsigned char cart[32768];
-static unsigned char ram[1024];
+unsigned char ram[1024];
 
 /* the sound chip registers */
 
@@ -62,23 +63,6 @@ static long alg_dy;     /* delta y */
 static long alg_curr_x; /* current x position */
 static long alg_curr_y; /* current y position */
 
-enum {
-	VECTREX_PDECAY	= 30,      /* phosphor decay rate */
-	
-	/* number of 6809 cycles before a frame redraw */
-
-	FCYCLES_INIT    = VECTREX_MHZ / VECTREX_PDECAY,
-
-	/* max number of possible vectors that maybe on the screen at one time.
-	 * one only needs VECTREX_MHZ / VECTREX_PDECAY but we need to also store
-	 * deleted vectors in a single table
-	 */
-	
-	VECTOR_CNT		= VECTREX_MHZ / VECTREX_PDECAY,
-
-	VECTOR_HASH     = 65521
-};
-
 static unsigned alg_vectoring; /* are we drawing a vector right now? */
 static long alg_vector_x0;
 static long alg_vector_y0;
@@ -97,6 +81,117 @@ vector_t *vectors_erse;
 static long vector_hash[VECTOR_HASH];
 
 static long fcycles;
+
+VECXState * saveVecxState() {
+	VECXState *state = malloc(sizeof(VECXState));
+	
+	saveCPUState(state->cpuRegs);
+	
+	memcpy(state->ram, ram, sizeof(unsigned char) * 1024);
+	
+	memcpy(state->sndRegs, snd_regs, sizeof(unsigned) * 16);
+	
+	state->sndSelect = snd_select;
+	
+	unsigned viaRegs[] = {via_ora, via_orb, via_ddra, via_ddrb, via_t1on, via_t1int, via_t1c, via_t1ll,
+        via_t1lh, via_t1pb7, via_t2on, via_t2int, via_t2c, via_t2ll, via_sr, via_srb,
+        via_src, via_srclk, via_acr, via_pcr, via_ifr, via_ier, via_ca2, via_cb2h, via_cb2s};
+	memcpy(state->viaRegs, viaRegs, sizeof(unsigned) * 25);
+	
+	unsigned analogDevices[] = {alg_rsh, alg_xsh, alg_ysh, alg_zsh, alg_jch0, alg_jch1, alg_jch2,
+        alg_jch3, alg_jsh, alg_compare};
+	memcpy(state->analogDevices, analogDevices, sizeof(unsigned) * 10);
+	
+	long analogAlg[] = {alg_dx, alg_dy, alg_curr_x, alg_curr_y};
+	memcpy(state->analogAlg, analogAlg, sizeof(long) * 4);
+	
+	state->algVectoring = alg_vectoring;
+	
+	long vectorPoints[] = {alg_vector_x0, alg_vector_y0, alg_vector_x1, alg_vector_y1,
+        alg_vector_dx, alg_vector_dy};
+	memcpy(state->vectorPoints, vectorPoints, sizeof(long) * 6);
+	
+	state->vecColor = alg_vector_color;
+	
+	long vecDrawInfo[] = {vector_draw_cnt, vector_erse_cnt};
+	memcpy(state->vecDrawInfo, vecDrawInfo, sizeof(long) * 2);
+	
+	memcpy(state->vectorsSet, vectors_set, sizeof(vector_t) * (2 * VECTOR_CNT));
+	
+	memcpy(state->vectorHash, vector_hash, sizeof(long) * VECTOR_HASH);
+	
+	return state;
+}
+
+void loadVecxState(VECXState *state) {
+	loadCPUState(state->cpuRegs);
+	
+	memcpy(ram, state->ram, sizeof(unsigned char) * 1024);
+	
+	memcpy(snd_regs, state->sndRegs, sizeof(unsigned) * 16);
+	
+	snd_select = state->sndSelect;
+	
+	via_ora = (state->viaRegs)[0];
+	via_orb = (state->viaRegs)[1];
+	via_ddra = (state->viaRegs)[2];
+	via_ddrb = (state->viaRegs)[3];
+	via_t1on = (state->viaRegs)[4];
+	via_t1int = (state->viaRegs)[5];
+	via_t1c = (state->viaRegs)[6];
+	via_t1ll = (state->viaRegs)[7];
+	via_t1lh = (state->viaRegs)[8];
+	via_t1pb7 = (state->viaRegs)[9];
+	via_t2on = (state->viaRegs)[10];
+	via_t2int = (state->viaRegs)[11];
+	via_t2c = (state->viaRegs)[12];
+	via_t2ll = (state->viaRegs)[13];
+	via_sr = (state->viaRegs)[14];
+	via_srb = (state->viaRegs)[15];
+	via_src = (state->viaRegs)[16];
+	via_srclk = (state->viaRegs)[17];
+	via_acr = (state->viaRegs)[18];
+	via_pcr = (state->viaRegs)[19];
+	via_ifr = (state->viaRegs)[20];
+	via_ier = (state->viaRegs)[21];
+	via_ca2 = (state->viaRegs)[22];
+	via_cb2h = (state->viaRegs)[23];
+	via_cb2s = (state->viaRegs)[24];
+	
+	alg_rsh = (state->analogDevices)[0];
+	alg_xsh = (state->analogDevices)[1];
+	alg_ysh = (state->analogDevices)[2];
+	alg_zsh = (state->analogDevices)[3];
+	alg_jch0 = (state->analogDevices)[4];
+	alg_jch1 = (state->analogDevices)[5];
+	alg_jch2 = (state->analogDevices)[6];
+	alg_jch3 = (state->analogDevices)[7];
+	alg_jsh = (state->analogDevices)[8];
+	alg_compare = (state->analogDevices)[9];
+	
+	alg_dx = (state->analogAlg)[0];
+	alg_dy = (state->analogAlg)[1];
+	alg_curr_x = (state->analogAlg)[2];
+	alg_curr_y = (state->analogAlg)[3];
+	
+	alg_vectoring = state->algVectoring;
+	
+	alg_vector_x0 = (state->vectorPoints)[0];
+	alg_vector_y0 = (state->vectorPoints)[1];
+	alg_vector_x1 = (state->vectorPoints)[2];
+	alg_vector_y1 = (state->vectorPoints)[3];
+	alg_vector_dx = (state->vectorPoints)[4];
+	alg_vector_dy = (state->vectorPoints)[5];
+	
+	alg_vector_color = state->vecColor;
+	
+	vector_draw_cnt = (state->vecDrawInfo)[0];
+	vector_erse_cnt = (state->vecDrawInfo)[1];
+	
+	memcpy(vectors_set, state->vectorsSet, sizeof(vector_t) * (2 * VECTOR_CNT));
+	
+	memcpy(vector_hash, state->vectorHash, sizeof(long) * VECTOR_HASH);
+}
 
 /* update the snd chips internal registers when via_ora/via_orb changes */
 
