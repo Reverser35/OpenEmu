@@ -14,7 +14,6 @@
 #import <GLUT/GLUT.h>
 #include "overlay.h"
 
-#ifdef ENABLE_OVERLAY
 extern TextureImage g_overlay;										// Storage For One Texture
 
 // Load TGA for texture
@@ -40,7 +39,7 @@ int LoadTGA (char *filename)			// Loads A TGA File Into Memory
 		fclose(file);										// If Anything Failed, Close The File
 		return 0;											// Return False
 	}
-
+    
 	tgaType = header[2];
 	if (tgaType != 2 && tgaType != 10)
 	{
@@ -166,4 +165,3 @@ int LoadTGA (char *filename)			// Loads A TGA File Into Memory
 
 	return 1;											// Texture Building Went Ok, Return True
 }
-#endif

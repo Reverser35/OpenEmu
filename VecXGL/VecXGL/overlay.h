@@ -2,9 +2,6 @@
 // Overlay info
 // JH 2007
 
-// disable this to disable overlays
-#define ENABLE_OVERLAY
-
 #import <OpenGL/gl.h>
 
 typedef struct								// Create A Structure

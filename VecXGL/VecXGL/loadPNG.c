@@ -9,12 +9,10 @@
 #import <OpenGL/gl.h>
 #import <GLUT/GLUT.h>
 #include "overlay.h"
-//#include "../libpng-1.2.8/include/png.h"
+#include "/usr/X11/include/png.h"
 
-#ifdef ENABLE_OVERLAY
 extern TextureImage g_overlay;										// Storage For One Texture
 
-/*
 // Load PNG for texture
 int LoadPNG (char *filename)			// Loads A PNG File Into Memory
 {
@@ -195,7 +193,3 @@ int LoadPNG (char *filename)			// Loads A PNG File Into Memory
 
 	return 1;											// Texture Building Went Ok, Return True
 }
-
-*/
-#endif
-

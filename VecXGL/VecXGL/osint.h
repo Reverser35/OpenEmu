@@ -21,6 +21,7 @@ void osint_gencolors (void);
 void osint_btnDown(OEVectrexButton btn);
 void osint_btnUp(OEVectrexButton btn);
 void fillsoundbuffer(uint8_t *stream, int len);
+void load_overlay(char *filename);
 
 extern uint8_t *pWave;
 

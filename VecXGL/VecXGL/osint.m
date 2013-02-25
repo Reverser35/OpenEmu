@@ -29,8 +29,6 @@
 typedef uint8_t Uint8;
 typedef uint16_t Uint16;
 
-//#define ENABLE_OVERLAY
-
 // AY38910 emulation stuff
 extern unsigned snd_regs[16];
 Uint8 AY_vol[3];
@@ -54,10 +52,8 @@ GLfloat line_width = DEFAULT_LINEWIDTH;
 GLfloat overlay_transparency = DEFAULT_OVERLAYTRANSPARENCY;
 
 // Global texture image info
-#ifdef ENABLE_OVERLAY
 TextureImage g_overlay;							// Storage For One Texture
 extern int LoadTGA (char *filename);			// Loads A TGA File Into Memory
-#endif
 
 static void osint_updatescale (void)
 {
@@ -106,6 +102,8 @@ int osint_defaults (void)
     //initialize and zero audio buffer
     pWave = malloc(VECTREX_AUDIO_SAMPLES);
     memset(pWave, 0, VECTREX_AUDIO_SAMPLES);
+    
+    g_overlay.width = 0;
 
 	return 0;
 }
@@ -190,7 +188,6 @@ void osint_render (void)
     glViewport( 0, 0, width, height );
 	glScissor( 0, 0, width, height );
 
-#ifdef ENABLE_OVERLAY
 	// draw overlay or clear screen if no overlay is used
 	if (g_overlay.width > 0) {
 		GLfloat alpha = overlay_transparency;
@@ -222,14 +219,9 @@ void osint_render (void)
 		glEnd();
 		glDisable(GL_TEXTURE_2D);
 	} else {
-	    glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
+	    glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
 		glClear(GL_COLOR_BUFFER_BIT);
 	}
-#else
-    // Clear color buffer
-	glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
-	glClear(GL_COLOR_BUFFER_BIT);
-#endif
 
     // Select and setup the projection matrix
     glMatrixMode( GL_PROJECTION );
@@ -345,16 +337,15 @@ void osint_btnUp(OEVectrexButton btn) {
     }
 }
 
-#ifdef ENABLE_OVERLAY
 // load overlay and set it as current texture
-static void load_overlay(char *filename)
+void load_overlay(char *filename)
 {
 
 	if (!LoadTGA(filename))				// Load The Font Texture
 	{
 		return;										// If Loading Failed, Return False
 	}
-
+    
 	//BuildFont();											// Build The Font
 
 	glShadeModel(GL_SMOOTH);								// Enable Smooth Shading
@@ -365,7 +356,6 @@ static void load_overlay(char *filename)
 	
 	//return TRUE;											// Initialization Went OK
 }
-#endif
 
 // sound mixer callback
 void fillsoundbuffer(uint8_t *stream, int len) {

@@ -62,6 +62,13 @@ VectrexGameCore *g_core;
     osint_defaults();           //setup defaults including sound buffer
     openCart([path UTF8String]);
     osint_gencolors();          //setup colors
+    
+    NSFileManager *defaultFileManager = [NSFileManager defaultManager];
+    
+    if ([defaultFileManager fileExistsAtPath:[[path stringByDeletingPathExtension] stringByAppendingString:@".tga"]]) {
+        load_overlay((char *)[[[path stringByDeletingPathExtension] stringByAppendingString:@".tga"] UTF8String]);
+    }
+    
     return YES;
 }
 
