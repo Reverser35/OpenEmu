@@ -37,6 +37,7 @@
 {
     int videoWidth, videoHeight;
     double sampleRate;
+    NSString *romPath;
 }
 @end
 
@@ -59,16 +60,10 @@ VectrexGameCore *g_core;
 
 - (BOOL)loadFileAtPath:(NSString *)path
 {
+    romPath = path;
     osint_defaults();           //setup defaults including sound buffer
     openCart([path UTF8String]);
     osint_gencolors();          //setup colors
-    
-    NSFileManager *defaultFileManager = [NSFileManager defaultManager];
-    
-    if ([defaultFileManager fileExistsAtPath:[[path stringByDeletingPathExtension] stringByAppendingString:@".tga"]]) {
-        load_overlay((char *)[[[path stringByDeletingPathExtension] stringByAppendingString:@".tga"] UTF8String]);
-    }
-    
     return YES;
 }
 
@@ -89,6 +84,12 @@ VectrexGameCore *g_core;
     {
         [super startEmulation];
         vecx_reset();
+        
+        NSFileManager *defaultFileManager = [NSFileManager defaultManager];
+        
+        if ([defaultFileManager fileExistsAtPath:[[romPath stringByDeletingPathExtension] stringByAppendingString:@".tga"]]) {
+            load_overlay((char *)[[[romPath stringByDeletingPathExtension] stringByAppendingString:@".tga"] UTF8String]);
+        }
     }
 }
 

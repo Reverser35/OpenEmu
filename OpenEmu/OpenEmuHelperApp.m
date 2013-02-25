@@ -659,6 +659,10 @@ NSString *const OEHelperProcessErrorDomain = @"OEHelperProcessErrorDomain";
 {
     NSLog(@"Begin separate thread");
 
+    if ([gameCore rendersToOpenGL]) {
+        CGLSetCurrentContext(glContext);
+    }
+    
     // starts the threaded emulator timer
     [gameCore startEmulation];
 
