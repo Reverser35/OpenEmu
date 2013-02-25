@@ -72,11 +72,6 @@ VectrexGameCore *g_core;
     return YES;
 }
 
-- (void)videoInterrupt
-{
-
-}
-
 - (void)executeFrameSkippingFrame:(BOOL)skip
 {
     vecx_emu ((VECTREX_MHZ / 1000) * EMU_TIMER, 0);    
@@ -105,11 +100,6 @@ VectrexGameCore *g_core;
 - (void)updateSound:(uint8_t *)buff len:(int)len
 {
     [[g_core ringBufferAtIndex:0] write:buff maxLength:len];
-}
-
-- (void)swapBuffers
-{
-
 }
 
 - (void)setupEmulation

@@ -36,8 +36,6 @@ OE_EXPORTED_CLASS
     uint8_t yAxis[2][2];
 }
 
-- (void)swapBuffers;
-- (void)videoInterrupt;
 - (void)updateSound:(uint8_t *)buff len:(int)len;
 
 @end
