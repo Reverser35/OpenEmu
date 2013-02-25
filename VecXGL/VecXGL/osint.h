@@ -1,7 +1,7 @@
 #ifndef __OSINT_H
 #define __OSINT_H
 #import <OpenGL/gl.h>
-#import <GLUT/GLUT.h>
+#import <OpenGL/glu.h>
 #include "OEVectrexSystemResponderClient.h"
 
 #define EMU_TIMER                   20			// milliseconds per frame

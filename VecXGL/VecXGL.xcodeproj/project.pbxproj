@@ -32,7 +32,6 @@
 		986F328216D40A9100BB38E2 /* osint.m in Sources */ = {isa = PBXBuildFile; fileRef = 986F327616D40A9100BB38E2 /* osint.m */; };
 		986F328316D40A9100BB38E2 /* readme_old.txt in Resources */ = {isa = PBXBuildFile; fileRef = 986F327916D40A9100BB38E2 /* readme_old.txt */; };
 		986F328516D40A9100BB38E2 /* vecx.m in Sources */ = {isa = PBXBuildFile; fileRef = 986F327C16D40A9100BB38E2 /* vecx.m */; };
-		988FD85016D750180069F4DA /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 988FD84F16D750170069F4DA /* GLUT.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -71,7 +70,6 @@
 		986F327C16D40A9100BB38E2 /* vecx.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = vecx.m; sourceTree = "<group>"; };
 		986F327D16D40A9100BB38E2 /* vecx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vecx.h; sourceTree = "<group>"; };
 		986F327E16D40A9100BB38E2 /* wnoise.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wnoise.h; sourceTree = "<group>"; };
-		988FD84F16D750170069F4DA /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -79,7 +77,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				988FD85016D750180069F4DA /* GLUT.framework in Frameworks */,
 				98150A8416D412E90085EBA2 /* OpenEmuBase.framework in Frameworks */,
 				986F326F16D4096500BB38E2 /* OpenGL.framework in Frameworks */,
 				986F323716D3FF4F00BB38E2 /* Cocoa.framework in Frameworks */,
@@ -109,7 +106,6 @@
 		986F323516D3FF4F00BB38E2 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				988FD84F16D750170069F4DA /* GLUT.framework */,
 				98150A8316D412E90085EBA2 /* OpenEmuBase.framework */,
 				986F326E16D4096500BB38E2 /* OpenGL.framework */,
 				986F323616D3FF4F00BB38E2 /* Cocoa.framework */,

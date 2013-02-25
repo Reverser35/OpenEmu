@@ -11,14 +11,14 @@
 #include <stdio.h>
 #include <string.h>
 #import <OpenGL/gl.h>
-#import <GLUT/GLUT.h>
+#import <OpenGL/glu.h>
 #include "overlay.h"
 
 extern TextureImage g_overlay;										// Storage For One Texture
 
 // Load TGA for texture
 int LoadTGA (char *filename)			// Loads A TGA File Into Memory
-{    
+{
 	GLubyte		header[18];									// TGA Header
 	GLubyte		tgaType;									// 2 = uncompr RGB, 10 = compr RGB
 	GLuint		bytesPerPixel;								// Holds Number Of Bytes Per Pixel Used In The TGA File

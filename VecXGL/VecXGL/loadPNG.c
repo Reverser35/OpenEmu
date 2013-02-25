@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <string.h>
 #import <OpenGL/gl.h>
-#import <GLUT/GLUT.h>
+#import <OpenGL/glu.h>
 #include "overlay.h"
 #include "/usr/X11/include/png.h"
 
