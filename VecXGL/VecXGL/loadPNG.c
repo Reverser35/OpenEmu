@@ -6,7 +6,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "SDLStubs.h"
+#import <OpenGL/gl.h>
+#import <GLUT/GLUT.h>
 #include "overlay.h"
 //#include "../libpng-1.2.8/include/png.h"
 

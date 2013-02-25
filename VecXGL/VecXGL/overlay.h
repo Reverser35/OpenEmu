@@ -5,7 +5,7 @@
 // disable this to disable overlays
 #define ENABLE_OVERLAY
 
-#include "SDLStubs.h"
+#import <OpenGL/gl.h>
 
 typedef struct								// Create A Structure
 {

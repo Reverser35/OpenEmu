@@ -10,8 +10,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#import <OpenGL/gl.h>
+#import <GLUT/GLUT.h>
 #include "overlay.h"
-#include "SDLStubs.h"
 
 #ifdef ENABLE_OVERLAY
 extern TextureImage g_overlay;										// Storage For One Texture
