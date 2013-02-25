@@ -23,7 +23,6 @@
 #include "wnoise.h"						// White noise waveform
 #include "overlay.h"					// overlay texture info
 #import "osint.h"
-#include "SDLStubs.h"
 #import "VectrexGameCore.h"
 
 //typedefs for integers
@@ -40,8 +39,7 @@ Uint16 AY_noisefreq;
 Uint8 AY_tone_enable[3];
 Uint8 AY_noise_enable[3];
 
-// SDL audio stuff
-SDL_AudioSpec reqSpec;
+//Audio buffer
 Uint8 *pWave;
 
 static const char* cartname = NULL;
@@ -104,6 +102,10 @@ int osint_defaults (void)
 	for (b = 0; b < sizeof (cart); b++) {
 		cart[b] = 0;
 	}
+    
+    //initialize and zero audio buffer
+    pWave = malloc(VECTREX_AUDIO_SAMPLES);
+    memset(pWave, 0, VECTREX_AUDIO_SAMPLES);
 
 	return 0;
 }
@@ -279,11 +281,7 @@ void osint_render (void)
 
 	glDisable(GL_BLEND);
 
-    
-    //Fill buffer and call core to update sound
-    fillsoundbuffer(pWave, reqSpec.samples);
-    [g_core updateSound:pWave len:reqSpec.samples];
-}
+    }
 
 void osint_btnDown(OEVectrexButton btn) {
     switch(btn) {
@@ -477,14 +475,4 @@ void fillsoundbuffer(uint8_t *stream, int len) {
 		stream[i] = (stream[i] + lastval) >> 1;				
 		lastval = stream[i];
 	}
-}
-
-void initSound(void) {
-    reqSpec.freq = 22050;						// Audio frequency in samples per second
-	reqSpec.format = 8;					// Audio data format (unsigned 8-bit samples)
-	reqSpec.channels = 1;						// Number of channels: 1 mono, 2 stereo
-	reqSpec.samples = 441;						// Audio buffer size in samples
-	reqSpec.userdata = NULL;
-    
-    pWave = malloc(reqSpec.samples);
 }

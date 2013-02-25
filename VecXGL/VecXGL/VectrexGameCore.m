@@ -48,8 +48,8 @@ VectrexGameCore *g_core;
 - (id)init
 {
     if (self = [super init]) {        
-        videoWidth = 330;
-        videoHeight = 410;
+        videoWidth = 330 * 2;
+        videoHeight = 410 * 2;
         sampleRate = 22050;
     }
     
@@ -59,10 +59,9 @@ VectrexGameCore *g_core;
 
 - (BOOL)loadFileAtPath:(NSString *)path
 {
-    osint_defaults();           //setup defaults
+    osint_defaults();           //setup defaults including sound buffer
     openCart([path UTF8String]);
     osint_gencolors();          //setup colors
-    initSound();                //setup sound
     return YES;
 }
 

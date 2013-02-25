@@ -2,6 +2,7 @@
 #include "e6809.h"
 #include "vecx.h"
 #include "osint.h"
+#import "VectrexGameCore.h"
 
 #define einline __inline
 
@@ -952,4 +953,8 @@ void vecx_emu (long cycles, int ahead)
 			vectors_draw = tmp;
 		}
 	}
+    //Fill buffer and call core to update sound
+    fillsoundbuffer(pWave, VECTREX_AUDIO_SAMPLES);
+    [g_core updateSound:pWave len:VECTREX_AUDIO_SAMPLES];
+
 }
