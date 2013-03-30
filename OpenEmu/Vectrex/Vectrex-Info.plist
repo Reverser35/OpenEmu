@@ -31,7 +31,7 @@
 	<key>OESystemName</key>
 	<string>Vectrex</string>
 	<key>OENumberOfPlayersKey</key>
-	<integer>2</integer>
+	<integer>1</integer>
 	<key>OESystemIcon</key>
 	<string></string>
 	<key>OEArchiveIDs</key>
