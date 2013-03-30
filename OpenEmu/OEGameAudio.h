@@ -42,6 +42,7 @@
 }
 
 @property float volume;
+@property AudioDeviceID outputDeviceID;
 
 - (id)initWithCore:(OEGameCore *)core;
 
@@ -49,5 +50,7 @@
 - (void)startAudio;
 - (void)stopAudio;
 - (void)pauseAudio;
+- (void)volumeUp;
+- (void)volumeDown;
 
 @end

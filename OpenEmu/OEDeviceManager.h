@@ -1,7 +1,6 @@
 /*
  Copyright (c) 2009, OpenEmu Team
 
-
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
      * Redistributions of source code must retain the above copyright
@@ -36,7 +35,9 @@
 
 + (OEDeviceManager *)sharedDeviceManager;
 
-@property(copy) NSArray *deviceHandlers;
+@property(readonly) NSArray *deviceHandlers;
+@property(readonly) NSArray *controllerDeviceHandlers;
+@property(readonly) NSArray *keyboardDeviceHandlers;
 
 - (void)startWiimoteSearch;
 - (void)stopWiimoteSearch;
@@ -45,7 +46,7 @@
 
 extern NSString *const OEWiimoteSupportEnabled;
 
-extern NSString *const OEHIDManagerDidAddDeviceHandlerNotification;
-extern NSString *const OEHIDManagerDidRemoveDeviceHandlerNotification;
+extern NSString *const OEDeviceManagerDidAddDeviceHandlerNotification;
+extern NSString *const OEDeviceManagerDidRemoveDeviceHandlerNotification;
 
-extern NSString *const OEHIDManagerDeviceHandlerUserInfoKey;
+extern NSString *const OEDeviceManagerDeviceHandlerUserInfoKey;

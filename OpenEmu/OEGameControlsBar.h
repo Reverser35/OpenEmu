@@ -29,6 +29,7 @@
 
 extern NSString *const OEGameControlsBarCanDeleteSaveStatesKey;
 extern NSString *const OEGameControlsBarShowsAutoSaveStateKey;
+extern NSString *const OEGameControlsBarShowsQuickSaveStateKey;
 extern NSString *const OEGameControlsBarHidesOptionButtonKey;
 extern NSString *const OEGameControlsBarFadeOutDelayKey;
 
@@ -44,7 +45,9 @@ extern NSString *const OEGameControlsBarFadeOutDelayKey;
 @property (readwrite) BOOL canShow;
 #pragma mark - Updating UI States
 - (void)reflectVolume:(float)volume;
+- (float)reflectVolumeUp;
+- (float)reflectVolumeDown;
 - (void)reflectEmulationRunning:(BOOL)isEmulationRunning;
-@property(unsafe_unretained) OEGameViewController *gameViewController;
+@property(readonly, unsafe_unretained) OEGameViewController *gameViewController;
 @end
 

@@ -48,6 +48,11 @@
 
 #import "OEGameCore.h"
 #import "OEGameDocument.h"
+#import "OEAudioDeviceManager.h"
+
+#import "OEDeviceHandler.h"
+#import "OEDeviceDescription.h"
+#import "OEDeviceManager.h"
 
 #import "OEHUDAlert+DefaultAlertsAdditions.h"
 
@@ -57,7 +62,8 @@
 #import "OEPreferencesController.h"
 
 NSString *const OEGameVolumeKey = @"volume";
-NSString *const OEGameVideoFilterKey = @"videoFilter";
+NSString *const OEGameDefaultVideoFilterKey = @"videoFilter";
+NSString *const OEGameSystemVideoFilterKeyFormat = @"videoFilter.%@";
 NSString *const OEGameCoresInBackgroundKey = @"gameCoreInBackgroundThread";
 NSString *const OEDontShowGameTitleInWindowKey = @"dontShowGameTitleInWindow";
 NSString *const OEAutoSwitchCoreAlertSuppressionKey = @"changeCoreWhenLoadingStateWitoutConfirmation";
@@ -242,7 +248,9 @@ typedef enum : NSUInteger
 {
     NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
     [nc removeObserver:self name:NSViewFrameDidChangeNotification object:gameView];
-    
+    [nc removeObserver:self name:OEDeviceHandlerDidReceiveLowBatteryWarningNotification object:nil];
+    [nc removeObserver:self name:OEDeviceManagerDidRemoveDeviceHandlerNotification object:nil];
+
     [controlsWindow close];
     controlsWindow = nil;
     gameView = nil;
@@ -273,8 +281,8 @@ typedef enum : NSUInteger
     
     if(![[NSUserDefaults standardUserDefaults] boolForKey:OEDontShowGameTitleInWindowKey])
     {
-        [window setTitle:[[[self rom] game] name]];
-        gameView.gameTitle = [[[self rom] game] name];
+        [window setTitle:[[[self rom] game] displayName]];
+        gameView.gameTitle = [[[self rom] game] displayName];
     }
 #if DEBUG_PRINT
     [window setTitle:[[window title] stringByAppendingString:@" (DEBUG BUILD)"]];
@@ -300,7 +308,6 @@ typedef enum : NSUInteger
     [window setTitle:[[window title] stringByAppendingString:@" (DEBUG BUILD)"]];
 #endif
     [[self controlsWindow] hide];
-    [self terminateEmulation];
 }
 
 - (void)windowDidResignKey:(NSNotification *)notification
@@ -356,19 +363,31 @@ typedef enum : NSUInteger
     }
 }
 
+- (BOOL)shouldTerminateEmulation
+{
+    [self enableOSSleep];
+    [self pauseGame:self];
+
+    [[self controlsWindow] setCanShow:NO];
+
+    if(![[OEHUDAlert stopEmulationAlert] runModal] == NSAlertDefaultReturn)
+    {
+        [[self controlsWindow] setCanShow:YES];
+        [self disableOSSleep];
+        [self playGame:self];
+        return NO;
+    }
+
+    return YES;
+}
+
 - (void)terminateEmulation
 {
     if(_emulationStatus == OEGameViewControllerEmulationStatusNotStarted ||
        _emulationStatus == OEGameViewControllerEmulationStatusTerminating)
         return;
 
-    [self enableOSSleep];
-    [self pauseGame:self];
-    
-    [[self controlsWindow] setCanShow:NO];
-    
-    if([[OEHUDAlert saveAutoSaveGameAlert] runModal])
-        [self saveStateWithName:OESaveStateAutosaveName];
+    [self saveStateWithName:OESaveStateAutosaveName];
 
     _emulationStatus = OEGameViewControllerEmulationStatusTerminating;
 
@@ -387,7 +406,10 @@ typedef enum : NSUInteger
 
 - (void)OE_terminateEmulationWithoutNotification
 {
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:NSViewFrameDidChangeNotification object:gameView];
+    NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
+    [nc removeObserver:self name:NSViewFrameDidChangeNotification object:gameView];
+    [nc removeObserver:self name:OEDeviceHandlerDidReceiveLowBatteryWarningNotification object:nil];
+    [nc removeObserver:self name:OEDeviceManagerDidRemoveDeviceHandlerNotification object:nil];
 
     _emulationStatus = OEGameViewControllerEmulationStatusNotStarted;
 
@@ -408,6 +430,12 @@ typedef enum : NSUInteger
     [[self rom] addTimeIntervalToPlayTime:ABS([_lastPlayStartDate timeIntervalSinceNow])];
     _lastPlayStartDate = nil;
 
+}
+
+- (IBAction)performClose:(id)sender
+{
+    if([self shouldTerminateEmulation])
+        [self terminateEmulation];
 }
 
 - (void)OE_startEmulation
@@ -449,6 +477,8 @@ typedef enum : NSUInteger
 
     NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
     [nc addObserver:self selector:@selector(viewDidChangeFrame:) name:NSViewFrameDidChangeNotification object:gameView];
+    [nc addObserver:self selector:@selector(OE_lowDeviceBattery:) name:OEDeviceHandlerDidReceiveLowBatteryWarningNotification object:nil];
+    [nc addObserver:self selector:@selector(OE_deviceDidDisconnect:) name:OEDeviceManagerDidRemoveDeviceHandlerNotification object:nil];
 
     NSWindow *window = [self OE_rootWindow];
     [window makeFirstResponder:gameView];
@@ -530,7 +560,9 @@ typedef enum : NSUInteger
     
     if([[plugin bundleIdentifier] isEqualTo:[self coreIdentifier]]) return;
     
-    OEHUDAlert *alert = [OEHUDAlert alertWithMessageText:@"If you change the core you current progress will be lost and save states will not work anymore." defaultButton:@"Change Core" alternateButton:@"Cancel"];
+    OEHUDAlert *alert = [OEHUDAlert alertWithMessageText:NSLocalizedString(@"If you change the core you current progress will be lost and save states will not work anymore.", @"")
+                                           defaultButton:NSLocalizedString(@"Change Core", @"")
+                                         alternateButton:NSLocalizedString(@"Cancel", @"")];
     [alert showSuppressionButtonForUDKey:OEAutoSwitchCoreAlertSuppressionKey];
     
     [alert setCallbackHandler:
@@ -597,8 +629,27 @@ typedef enum : NSUInteger
         filterName = [sender title];
     else
         DLog(@"Invalid argument passed: %@", sender);
-    
-    [[NSUserDefaults standardUserDefaults] setObject:filterName forKey:OEGameVideoFilterKey];
+
+    [gameView setFilterName:filterName];
+    [[NSUserDefaults standardUserDefaults] setObject:filterName forKey:[NSString stringWithFormat:OEGameSystemVideoFilterKeyFormat, [self systemIdentifier]]];
+}
+
+- (void)changeAudioOutputDevice:(id)sender
+{
+    OEAudioDevice *device = nil;
+
+    if([sender isKindOfClass:[OEAudioDevice class]])
+        device = sender;
+    else if ([sender respondsToSelector:@selector(representedObject)] && [[sender representedObject] isKindOfClass:[OEAudioDevice class]])
+        device = [sender representedObject];
+
+    if(!device)
+    {
+        DLog(@"Invalid argument: %@", sender);
+        return;
+    }
+
+    [rootProxy setAudioOutputDeviceID:[device deviceID]];
 }
 
 #pragma mark - Volume
@@ -624,10 +675,18 @@ typedef enum : NSUInteger
 
 - (IBAction)volumeUp:(id)sender
 {
+    [rootProxy volumeUp];
+    float volume = [[self controlsWindow] reflectVolumeUp];
+
+    [[NSUserDefaults standardUserDefaults] setValue:[NSNumber numberWithFloat:volume] forKey:OEGameVolumeKey];
 }
 
 - (IBAction)volumeDown:(id)sender
 {
+    [rootProxy volumeDown];
+    float volume = [[self controlsWindow] reflectVolumeDown];
+
+    [[NSUserDefaults standardUserDefaults] setValue:[NSNumber numberWithFloat:volume] forKey:OEGameVolumeKey];
 }
 
 - (void)mute:(id)sender
@@ -646,21 +705,50 @@ typedef enum : NSUInteger
 {
     OEHUDAlert *alert = [[OEHUDAlert alloc] init];
     
-    [alert setOtherInputLabelText:@"Title:"];
+    [alert setOtherInputLabelText:NSLocalizedString(@"Title:", @"")];
     [alert setShowsOtherInputField:YES];
-    [alert setOtherStringValue:@"Cheat Description"];
+    [alert setOtherStringValue:NSLocalizedString(@"Cheat Description", @"")];
     
-    [alert setInputLabelText:@"Code:"];
+    [alert setInputLabelText:NSLocalizedString(@"Code:", @"")];
     [alert setShowsInputField:YES];
     [alert setStringValue:@"000-000+000-000;01HHHHHH"];
     
     [alert setDefaultButtonTitle:NSLocalizedString(@"Add Cheat", @"")];
     [alert setAlternateButtonTitle:NSLocalizedString(@"Cancel", @"")];
     
-    [alert setHeight:150.0];
     [alert setInputLimit:1000];
     
-    [alert runModal];
+    if([alert runModal])
+    {
+        // TODO: decide how to handle setting a cheat type from the modal and save added cheats to file
+        NSMutableDictionary *cheatsDictionary = [[NSMutableDictionary alloc] init];
+        [cheatsDictionary setObject:[alert stringValue] forKey:@"code"];
+        [cheatsDictionary setObject:@"Unknown" forKey:@"type"];
+        [cheatsDictionary setObject:[alert otherStringValue] forKey:@"description"];
+        [cheatsDictionary setObject:[NSNumber numberWithBool:NO] forKey:@"enabled"];
+    
+        [[sender representedObject] addObject:cheatsDictionary];
+    }
+}
+
+- (IBAction)setCheat:(id)sender
+{
+    NSString *code, *type;
+    BOOL enabled;
+    code = [[sender representedObject] objectForKey:@"code"];
+    type = [[sender representedObject] objectForKey:@"type"];
+    enabled = [[[sender representedObject] objectForKey:@"enabled"] boolValue];
+    
+    if (enabled) {
+        [[sender representedObject] setObject:[NSNumber numberWithBool:NO] forKey:@"enabled"];
+        enabled = NO;
+    }
+    else {
+        [[sender representedObject] setObject:[NSNumber numberWithBool:YES] forKey:@"enabled"];
+        enabled = YES;
+    }
+    
+    [self setCheatWithCodeAndType:code setType:type setEnabled:enabled];
 }
 
 - (BOOL)cheatSupport
@@ -696,7 +784,14 @@ typedef enum : NSUInteger
 
 - (IBAction)quickSave:(id)sender;
 {
-    [self saveStateWithName:OESaveStateQuicksaveName];
+    int slot = 0;
+    if([[sender representedObject] isKindOfClass:[NSNumber class]])
+        slot = [[sender representedObject] intValue];
+    else if([sender respondsToSelector:@selector(tag)])
+        slot = [sender tag];
+    
+    NSString *name = [OEDBSaveState nameOfQuickSaveInSlot:slot];
+    [self saveStateWithName:name];
 }
 
 - (void)saveStateWithName:(NSString *)stateName
@@ -793,7 +888,9 @@ typedef enum : NSUInteger
     
     if([[self coreIdentifier] isNotEqualTo:[state coreIdentifier]])
     {
-        OEHUDAlert *alert = [OEHUDAlert alertWithMessageText:@"This save state was created with a different core. Do you want to switch to that core now?" defaultButton:@"OK" alternateButton:@"Cancel"];
+        OEHUDAlert *alert = [OEHUDAlert alertWithMessageText:NSLocalizedString(@"This save state was created with a different core. Do you want to switch to that core now?", @"")
+                                               defaultButton:NSLocalizedString(@"OK", @"")
+                                             alternateButton:NSLocalizedString(@"Cancel", @"")];
         [alert showSuppressionButtonForUDKey:OEAutoSwitchCoreAlertSuppressionKey];
         if([alert runModal])
         {
@@ -826,7 +923,13 @@ typedef enum : NSUInteger
 
 - (IBAction)quickLoad:(id)sender;
 {
-    OEDBSaveState *quicksaveState = [[self rom] quickSaveStateInSlot:0];
+    int slot = 0;
+    if([[sender representedObject] isKindOfClass:[NSNumber class]])
+        slot = [[sender representedObject] intValue];
+    else if([sender respondsToSelector:@selector(tag)])
+        slot = [sender tag];
+
+    OEDBSaveState *quicksaveState = [[self rom] quickSaveStateInSlot:slot];
     if(quicksaveState)
         [self loadState:quicksaveState];
 }
@@ -859,13 +962,15 @@ typedef enum : NSUInteger
 }
 
 #pragma mark - Menu Items
-
 - (BOOL)validateMenuItem:(NSMenuItem *)menuItem
 {
     SEL action = [menuItem action];
     
     if(action == @selector(quickLoad:))
-        return [[self rom] quickSaveStateInSlot:0]!=nil;
+    {
+        int slot = [menuItem representedObject] ? [[menuItem representedObject] intValue] : [menuItem tag];
+        return [[self rom] quickSaveStateInSlot:slot]!=nil;
+    }
     else if(action == @selector(pauseGame:))
         return _emulationStatus == OEGameViewControllerEmulationStatusPlaying;
     else if(action == @selector(playGame:))
@@ -1002,6 +1107,40 @@ typedef enum : NSUInteger
 - (void)windowDidChangeScreen:(NSNotification *)notification
 {
     [self OE_repositionControlsWindow];
+}
+
+- (void)OE_lowDeviceBattery:(NSNotification *)notification
+{
+    BOOL isRunning = [self isEmulationRunning];
+    [self pauseGame:self];
+    
+    OEDeviceHandler *devHandler = [notification object];
+    NSString *lowBatteryString = [NSString stringWithFormat:NSLocalizedString(@"The battery in device number %lu, %@, is low. Please charge or replace the battery.", @"Low battery alert detail message."), [devHandler deviceNumber], [[devHandler deviceDescription] name]];
+    OEHUDAlert *alert = [OEHUDAlert alertWithMessageText:lowBatteryString
+                                           defaultButton:NSLocalizedString(@"Resume", nil)
+                                         alternateButton:nil];
+    [alert setHeadlineText:[NSString stringWithFormat:NSLocalizedString(@"Low Controller Battery", @"Device battery level is low.")]];
+    [alert runModal];
+    
+    if(isRunning)
+        [self playGame:self];
+}
+
+- (void)OE_deviceDidDisconnect:(NSNotification *)notification
+{
+    BOOL isRunning = [self isEmulationRunning];
+    [self pauseGame:self];
+    
+    OEDeviceHandler *devHandler = [[notification userInfo] objectForKey:OEDeviceManagerDeviceHandlerUserInfoKey];
+    NSString *lowBatteryString = [NSString stringWithFormat:NSLocalizedString(@"Device number %lu, %@, has disconnected.", @"Device disconnection detail message."), [devHandler deviceNumber], [[devHandler deviceDescription] name]];
+    OEHUDAlert *alert = [OEHUDAlert alertWithMessageText:lowBatteryString
+                                           defaultButton:NSLocalizedString(@"Resume", nil)
+                                         alternateButton:nil];
+    [alert setHeadlineText:[NSString stringWithFormat:NSLocalizedString(@"Device Disconnected", @"A controller device has disconnected.")]];
+    [alert runModal];
+
+    if(isRunning)
+        [self playGame:self];
 }
 
 #pragma mark - Plugin discovery

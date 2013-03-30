@@ -739,6 +739,23 @@ __strong static NSImage *selectorRings[2] = {nil, nil};                         
     return YES;
 }
 
+- (CGRect)toolTipRect
+{
+    const CGRect frame = [self frame];
+
+    CGRect toolTipFrame = CGRectMake(frame.origin.x,
+                                     frame.origin.y + frame.size.height - OECoverGridViewCellSubtitleHeight - OECoverGridViewCellTitleHeight,
+                                     CGRectGetWidth(frame),
+                                     OECoverGridViewCellTitleHeight);
+
+    return toolTipFrame;
+}
+
+- (NSString *)view:(NSView *)view stringForToolTip:(NSToolTipTag)tag point:(NSPoint)point userData:(void *)data
+{
+    return [self title];
+}
+
 #pragma mark - NSControlSubclassNotifications
 - (void)controlTextDidBeginEditing:(NSNotification *)aNotification
 {

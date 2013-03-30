@@ -37,6 +37,7 @@ typedef NSUInteger OEDBGameStatus;
 
 extern NSString *const OEPasteboardTypeGame;
 extern NSString *const OEBoxSizesKey;
+extern NSString *const OEDisplayGameTitle;
 
 @class OELibraryDatabase;
 @class OEDBSystem, OEDBRom, OEDBSaveState;
@@ -82,12 +83,7 @@ extern NSString *const OEBoxSizesKey;
 #pragma mark -
 #pragma mark Archive.VG Sync
 - (void)setArchiveVGInfo:(NSDictionary *)gameInfoDictionary;
-// -performFullSyncWithArchiveVG: gets all info from archive.vg (cover and info)
-- (void)setNeedsFullSyncWithArchiveVG;
-// -performInfoSyncWithArchiveVG: only grabs info (text)
-- (void)setNeedsInfoSyncWithArchiveVG;
-// -performInfoSyncWithArchiveVG: only grabs cover (image)
-- (void)setNeedsCoverSyncWithArchiveVG;
+- (void)setNeedsArchiveSync;
 
 - (id)mergeInfoFromGame:(OEDBGame *)game;
 
@@ -123,6 +119,7 @@ extern NSString *const OEBoxSizesKey;
 @property(nonatomic, retain) NSDate    *lastArchiveSync;
 @property(nonatomic, retain) NSNumber  *archiveID;
 @property(nonatomic, retain) NSNumber  *status;
+@property(nonatomic, retain) NSString  *displayName;
 
 #pragma mark -
 #pragma mark Data Model Relationships

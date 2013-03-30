@@ -29,9 +29,10 @@
 #import "OECompositionPlugin.h"
 #import "OEShaderPlugin.h"
 #import "OEGameViewController.h"
+#import "OEDBSystem.h"
 
 @implementation OEPrefGameplayController
-@synthesize filterPreviewContainer, filterSelection;
+@synthesize filterSelection;
 
 - (void)awakeFromNib
 {
@@ -52,24 +53,12 @@
 	[[self filterSelection] setMenu:filterMenu];
 
 	NSUserDefaults *sud = [NSUserDefaults standardUserDefaults];
-	NSString *selectedFilterName = [sud objectForKey:OEGameVideoFilterKey];
+	NSString *selectedFilterName = [sud objectForKey:OEGameDefaultVideoFilterKey];
 
 	if(selectedFilterName != nil && [[self filterSelection] itemWithTitle:selectedFilterName])
 		[[self filterSelection] selectItemWithTitle:selectedFilterName];
     else
 		[[self filterSelection] selectItemAtIndex:0];
-
-	[self changeFilter:[self filterSelection]];
-
-
-    [[self filterPreviewContainer] setWantsLayer:YES];
-    CATransition *awesomeCrossFade = [CATransition animation];
-    awesomeCrossFade.type = kCATransitionFade;
-    awesomeCrossFade.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionDefault];
-    awesomeCrossFade.duration = 1.0;
-
-    [[self filterPreviewContainer] setAnimations:[NSDictionary dictionaryWithObject:awesomeCrossFade forKey:@"subviews"]];
-
 }
 
 #pragma mark ViewController Overrides
@@ -98,7 +87,7 @@
 
 - (NSSize)viewSize
 {
-	return NSMakeSize(423, 354);
+	return NSMakeSize(423, 254);
 }
 
 #pragma mark -
@@ -107,26 +96,15 @@
 - (IBAction)changeFilter:(id)sender
 {
 	NSString *filterName = [[[self filterSelection] selectedItem] title];
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSArray *allSystemIdentifiers = [OEDBSystem allSystemIdentifiers];
+    
+    for(OECorePlugin *systemIdentifiers in allSystemIdentifiers)
+    {
+        [defaults removeObjectForKey:[NSString stringWithFormat:OEGameSystemVideoFilterKeyFormat, systemIdentifiers]];
+    }
 
-    OECompositionPlugin *plugin = [OECompositionPlugin pluginWithName:filterName];
-    NSImage *filterPreviewImage = (plugin != nil && ![plugin isBuiltIn]
-                                   ? [plugin previewImage]
-                                   : [[NSBundle mainBundle] imageForResource:[filterName stringByAppendingPathExtension:@"png"]]);
-
-	NSImageView *newPreviewView = [[NSImageView alloc] initWithFrame:(NSRect){ .size = [[self filterPreviewContainer] frame].size }];
-    [newPreviewView setImage:filterPreviewImage];
-    [newPreviewView setImageAlignment:NSImageAlignCenter];
-    [newPreviewView setImageFrameStyle:NSImageFrameNone];
-    [newPreviewView setImageScaling:NSImageScaleNone];
-
-    NSView *currentImageView = [[[self filterPreviewContainer] subviews] lastObject];
-
-    if(currentImageView != nil)
-        [[[self filterPreviewContainer] animator] replaceSubview:currentImageView with:newPreviewView];
-    else
-        [[self filterPreviewContainer] addSubview:newPreviewView];
-
-	[[NSUserDefaults standardUserDefaults] setObject:filterName forKey:OEGameVideoFilterKey];
+	[defaults setObject:filterName forKey:OEGameDefaultVideoFilterKey];
 }
 
 @end

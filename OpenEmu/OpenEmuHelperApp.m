@@ -62,7 +62,7 @@ NSString *const OEHelperProcessErrorDomain = @"OEHelperProcessErrorDomain";
 @implementation OpenEmuHelperApp
 {
     OEIntSize previousAspectSize;
-    BOOL isIntel;
+    BOOL hasSlowClientStorage;
 }
 
 @synthesize doUUID;
@@ -191,7 +191,8 @@ NSString *const OEHelperProcessErrorDomain = @"OEHelperProcessErrorDomain";
     CGLContextObj cgl_ctx = glContext;
 
     const GLubyte *vendor = glGetString(GL_VENDOR);
-    isIntel = strstr((const char*)vendor, "Intel") != NULL;
+    const GLubyte *renderer = glGetString(GL_RENDERER);
+    hasSlowClientStorage = strstr((const char*)vendor, "Intel") || strstr((const char*)renderer, "NVIDIA GeForce 9600M GT OpenGL Engine") || strstr((const char*)renderer, "NVIDIA GeForce 8600M GT OpenGL Engine") != NULL;
 }
 
 - (void)setupIOSurface
@@ -289,7 +290,7 @@ NSString *const OEHelperProcessErrorDomain = @"OEHelperProcessErrorDomain";
     pixelFormat         = [gameCore pixelFormat];
     pixelType           = [gameCore pixelType];
 
-    if(!isIntel)
+    if(!hasSlowClientStorage)
     {
         glTexParameteri(GL_TEXTURE_RECTANGLE_EXT,GL_TEXTURE_STORAGE_HINT_APPLE, GL_STORAGE_CACHED_APPLE);
         glPixelStorei(GL_UNPACK_CLIENT_STORAGE_APPLE, GL_TRUE);
@@ -316,7 +317,7 @@ NSString *const OEHelperProcessErrorDomain = @"OEHelperProcessErrorDomain";
         gameTexture = 0;
     }
 
-    if (!isIntel) {
+    if (!hasSlowClientStorage) {
     glTexParameteri(GL_TEXTURE_RECTANGLE_EXT, GL_TEXTURE_STORAGE_HINT_APPLE , GL_STORAGE_PRIVATE_APPLE);
     glPixelStorei(GL_UNPACK_CLIENT_STORAGE_APPLE, GL_FALSE);
     }
@@ -333,7 +334,7 @@ NSString *const OEHelperProcessErrorDomain = @"OEHelperProcessErrorDomain";
 
     glBindTexture(GL_TEXTURE_RECTANGLE_ARB, gameTexture);
 
-    if (!isIntel) glPixelStorei(GL_UNPACK_CLIENT_STORAGE_APPLE, GL_TRUE);
+    if (!hasSlowClientStorage) glPixelStorei(GL_UNPACK_CLIENT_STORAGE_APPLE, GL_TRUE);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
     glTexSubImage2D(GL_TEXTURE_RECTANGLE_EXT, 0, 0, 0, bufferSize.width, bufferSize.height, [gameCore pixelFormat], [gameCore pixelType], [gameCore videoBuffer]);
 
@@ -630,6 +631,10 @@ NSString *const OEHelperProcessErrorDomain = @"OEHelperProcessErrorDomain";
     NSFileManager *fm = [NSFileManager new];
     NSString *folder = temporaryDirectoryForDecompressionOfPath(aPath);
     NSString *tmpPath = [folder stringByAppendingPathComponent:[archive nameOfEntry:0]];
+    if ([[tmpPath pathExtension] length] == 0 && [[aPath pathExtension] length] > 0) {
+        // we need an extension
+        tmpPath = [tmpPath stringByAppendingPathExtension:[aPath pathExtension]];
+    }
 
     BOOL isdir;
     if ([fm fileExistsAtPath:tmpPath isDirectory:&isdir] && !isdir) {
@@ -640,7 +645,7 @@ NSString *const OEHelperProcessErrorDomain = @"OEHelperProcessErrorDomain";
     BOOL success = YES;
     @try
     {
-        success = [archive extractEntry:0 to:folder];
+        success = [archive _extractEntry:0 as:tmpPath];
     }
     @catch (NSException *exception)
     {
@@ -751,6 +756,8 @@ NSString *const OEHelperProcessErrorDomain = @"OEHelperProcessErrorDomain";
 - (void)setPauseEmulation:(BOOL)paused
 {
     [gameCore setPauseEmulation:paused];
+
+    [delegate setPauseEmulation:paused];
 }
 
 // methods
@@ -758,6 +765,18 @@ NSString *const OEHelperProcessErrorDomain = @"OEHelperProcessErrorDomain";
 {
     DLog(@"%@", gameAudio);
     [gameAudio setVolume:volume];
+}
+
+- (void)volumeUp
+{
+    DLog(@"%@", gameAudio);
+    [gameAudio volumeUp];
+}
+
+- (void)volumeDown
+{
+    DLog(@"%@", gameAudio);
+    [gameAudio volumeDown];
 }
 
 - (void)setDrawSquarePixels:(BOOL)_drawSquarePixels
@@ -860,6 +879,14 @@ NSString *const OEHelperProcessErrorDomain = @"OEHelperProcessErrorDomain";
 
     // If we need to do GL commands in endDrawToIOSurface, use glFenceSync here and glWaitSync there?
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, tempFBO);
+}
+
+#pragma mark - Audio
+
+- (oneway void)setAudioOutputDeviceID:(AudioDeviceID)deviceID
+{
+    NSLog(@"---------- will set output device id to %lu", (unsigned long)deviceID);
+    [gameAudio setOutputDeviceID:deviceID];
 }
 
 #pragma mark - OEAudioDelegate

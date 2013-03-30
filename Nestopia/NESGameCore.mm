@@ -359,7 +359,7 @@ void NST_CALLBACK doEvent(void *userData, Nes::Api::Machine::Event event, Nes::R
     Nes::Api::User::questionCallback.Set(doQuestion, userData);
 
     std::ifstream romFile([path cStringUsingEncoding:NSUTF8StringEncoding], std::ios::in | std::ios::binary);
-    result = machine.Load(romFile, Nes::Api::Machine::FAVORED_NES_PAL, Nes::Api::Machine::ASK_PROFILE);
+    result = machine.Load(romFile, Nes::Api::Machine::FAVORED_NES_NTSC, Nes::Api::Machine::ASK_PROFILE);
 
     if(NES_FAILED(result))
     {
@@ -746,6 +746,27 @@ static int Heights[2] =
 {
     return [self isNTSCEnabled] ? OESizeMake(Widths[1], Heights[1] * 2)
                                 : OESizeMake(Widths[0], Heights[0]);
+}
+
+- (BOOL)canCheat
+{
+    return YES;
+}
+
+- (void)setCheat:(NSString *)code setType:(NSString *)type setEnabled:(BOOL)enabled
+{
+    Nes::Api::Cheats cheater(*emu);
+    Nes::Api::Cheats::Code ggCode;
+    
+    NSArray *multipleCodes = [[NSArray alloc] init];
+    multipleCodes = [code componentsSeparatedByString:@"+"];
+    
+    for (NSString *singleCode in multipleCodes) {
+        const char *cCode = [singleCode UTF8String];
+        
+        Nes::Api::Cheats::GameGenieDecode(cCode, ggCode);
+        cheater.SetCode(ggCode);
+    }
 }
 
 @end

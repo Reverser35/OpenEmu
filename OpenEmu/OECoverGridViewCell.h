@@ -57,6 +57,8 @@
     OECoverGridViewCellIndicationType _indicationType;
 }
 
+- (NSRect)toolTipRect;
+
 #pragma mark - Properties
 @property(nonatomic, strong) NSImage   *image;
 @property(nonatomic, assign) NSSize     imageSize;

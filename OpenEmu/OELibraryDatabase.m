@@ -72,6 +72,8 @@ NSString *const OESaveStateFolderURLKey      = @"saveStateFolder";
 - (void)OE_setupStateWatcher;
 - (void)OE_removeStateWatcher;
 
+- (void)OE_resumeArchiveSync;
+
 @property(strong) OEFSWatcher *saveStateWatcher;
 @property(copy)   NSURL       *databaseURL;
 @property(strong) NSPersistentStoreCoordinator *persistentStoreCoordinator;
@@ -122,6 +124,7 @@ static OELibraryDatabase *defaultDatabase = nil;
     dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC));
     dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
         [[defaultDatabase importer] start];
+        [defaultDatabase OE_resumeArchiveSync];
     });
     
     return YES;
@@ -221,6 +224,17 @@ static OELibraryDatabase *defaultDatabase = nil;
 
     NSLog(@"Did save Database");
 }
+- (void)OE_resumeArchiveSync
+{
+    NSManagedObjectContext *moc = [self managedObjectContext];
+    NSFetchRequest *fetchReq = [[NSFetchRequest alloc] initWithEntityName:@"Game"];
+    NSPredicate *fetchPred = [NSPredicate predicateWithFormat:@"status == %d", OEDBGameStatusProcessing];
+    [fetchReq setPredicate:fetchPred];
+    NSArray *games = [moc executeFetchRequest:fetchReq error:NULL];
+    [games enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        [obj setNeedsArchiveSync];
+    }];
+}
 
 #pragma mark - Administration
 - (void)disableSystemsWithoutPlugin
@@ -237,44 +251,46 @@ static OELibraryDatabase *defaultDatabase = nil;
 - (void)OE_setupStateWatcher
 {
     NSString *stateFolderPath = [[self stateFolderURL] path];
-    __block OEFSBlock fsBlock = ^ (NSString *path, FSEventStreamEventFlags flags)
+    __block __unsafe_unretained OEFSBlock recFsBlock;
+    __block OEFSBlock fsBlock = [^(NSString *path, FSEventStreamEventFlags flags)
     {
-        if( (flags & (kFSEventStreamEventFlagItemModified | kFSEventStreamEventFlagItemIsFile)) && [[path lastPathComponent] isEqualToString:@"Info.plist"])
+      if(flags & kFSEventStreamEventFlagItemIsDir)
         {
-            path = [path stringByDeletingLastPathComponent];
-        }
-        else if(flags & (kFSEventStreamEventFlagItemIsDir))
-        {
-            if((flags & kFSEventStreamEventFlagMustScanSubDirs) && [[path pathExtension] isNotEqualTo:@"oesavestate"])
+            NSFileManager *fileManager = [NSFileManager defaultManager];
+            NSURL   *url   = [NSURL fileURLWithPath:path];
+            NSError *error = nil;
+
+            if([fileManager fileExistsAtPath:path])
             {
-                NSError *error = nil;
-                BOOL     isDir = NO;
-                NSArray *folderContent = nil;
-                if([[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&isDir]
-                   && isDir
-                   && (folderContent = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:path error:&error]) != nil)
-                    [folderContent enumerateObjectsUsingBlock: ^ (id obj, NSUInteger idx, BOOL *stop)
-                     {
-                         NSString *subPath = [path stringByAppendingPathComponent:obj];
-                         fsBlock(subPath, flags);
-                     }];
-                path = nil;
+                if([[path pathExtension] isEqualTo:OESaveStateSuffix])
+                {
+                    dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, 0.2 * NSEC_PER_SEC);
+                    dispatch_after(popTime, dispatch_get_main_queue(), ^{
+                        [OEDBSaveState updateOrCreateStateWithPath:path];
+                    });
+                }
+                else
+                {
+                    NSArray *contents = [fileManager contentsOfDirectoryAtPath:path error:&error];
+                    [contents enumerateObjectsUsingBlock:^(NSString *subpath, NSUInteger idx, BOOL *stop) {
+                        recFsBlock([path stringByAppendingPathComponent:subpath], flags);
+                    }];
+                }
+            }
+            else
+            {
+                NSFetchRequest *fetchRequest = [NSFetchRequest fetchRequestWithEntityName:@"SaveState"];
+                NSPredicate    *predicate    = [NSPredicate predicateWithFormat:@"location BEGINSWITH[cd] %@", [url absoluteString]];
+                [fetchRequest setPredicate:predicate];
+                NSArray *result = [[self managedObjectContext] executeFetchRequest:fetchRequest error:&error];
+                if(error) DLog(@"executing fetch request failed: %@", error);
+                [result enumerateObjectsUsingBlock:^(OEDBSaveState *state, NSUInteger idx, BOOL *stop) {
+                    [state remove];
+                }];
             }
         }
-        else
-        {
-            path = nil;
-        }
-        
-        if( path != nil)
-        {
-            // Wait a little while to make sure the fs operation has completed
-            dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, 0.2 * NSEC_PER_SEC);
-            dispatch_after(popTime, dispatch_get_main_queue(), ^{
-                [OEDBSaveState updateOrCreateStateWithPath:path];
-            });
-        }
-    };
+    } copy];
+    recFsBlock = fsBlock;
 
     OEFSWatcher *watcher = [OEFSWatcher persistentWatcherWithKey:OESaveStateLastFSEventIDKey forPath:stateFolderPath withBlock:fsBlock];
     [watcher setDelay:1.0];
@@ -540,7 +556,7 @@ static OELibraryDatabase *defaultDatabase = nil;
     
     if(name == nil)
     {
-        name = NSLocalizedString(@"New Collection", @"");
+        name = NSLocalizedString(@"New Collection", @"Default collection name");
         
         NSEntityDescription *entityDescription = [NSEntityDescription entityForName:@"AbstractCollection" inManagedObjectContext:context];
         
@@ -809,7 +825,8 @@ static OELibraryDatabase *defaultDatabase = nil;
 - (NSURL *)stateFolderURLForSystem:(OEDBSystem *)system
 {
     OESystemPlugin *plugin = [system plugin];
-    NSURL *result = [[self stateFolderURL] URLByAppendingPathComponent:[plugin displayName] isDirectory:YES];
+    NSString *displayName = [plugin displayName] ?: NSLocalizedString(@"Unkown System", "Name of directory for savestates with unknown systems");
+    NSURL *result = [[self stateFolderURL] URLByAppendingPathComponent:displayName isDirectory:YES];
     [[NSFileManager defaultManager] createDirectoryAtURL:result withIntermediateDirectories:YES attributes:nil error:nil];
 
     return result;

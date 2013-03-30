@@ -19,6 +19,34 @@
 	</dict>
 	<key>Fonts</key>
 	<dict>
+		<key>hud_textfield</key>
+		<dict>
+			<key>Traits</key>
+			<string>Bold</string>
+			<key>Weight</key>
+			<integer>3</integer>
+			<key>Family</key>
+			<string>Lucida Grande</string>
+			<key>Size</key>
+			<integer>11</integer>
+			<key>Color</key>
+			<string>#dbdbdb</string>
+		</dict>
+		<key>hud_textfield_selection</key>
+		<dict>
+			<key>Traits</key>
+			<string>Bold</string>
+			<key>Weight</key>
+			<integer>3</integer>
+			<key>Family</key>
+			<string>Lucida Grande</string>
+			<key>Size</key>
+			<integer>11</integer>
+			<key>Color</key>
+			<string>#f2f2f2</string>
+			<key>Background Color</key>
+			<string>#808080</string>
+		</dict>
 		<key>game_scanner_text</key>
 		<dict>
 			<key>Family</key>
@@ -266,7 +294,7 @@
 				<key>Default</key>
 				<dict>
 					<key>Color</key>
-					<string>rgb(227,227,227)</string>
+					<string>rgba(228,228,228,1.0)</string>
 				</dict>
 				<key>Disabled</key>
 				<dict>
@@ -553,10 +581,6 @@
 		<dict>
 			<key>Family</key>
 			<string>Lucida Grande</string>
-			<key>Traits</key>
-			<string>Bold</string>
-			<key>Weight</key>
-			<real>3</real>
 			<key>Size</key>
 			<integer>11</integer>
 			<key>Alignment</key>
@@ -571,7 +595,7 @@
 				<key>Default</key>
 				<dict>
 					<key>Color</key>
-					<string>rgba(232,232,232,1.0)</string>
+					<string>rgba(228,228,228,1.0)</string>
 					<key>Shadow</key>
 					<dict>
 						<key>Color</key>
@@ -598,10 +622,6 @@
 		<dict>
 			<key>Family</key>
 			<string>Lucida Grande</string>
-			<key>Traits</key>
-			<string>Bold</string>
-			<key>Weight</key>
-			<real>3</real>
 			<key>Size</key>
 			<integer>11</integer>
 			<key>Alignment</key>
@@ -616,7 +636,7 @@
 				<key>Default</key>
 				<dict>
 					<key>Color</key>
-					<string>rgba(232,232,232,1.0)</string>
+					<string>rgba(228,228,228,1.0)</string>
 					<key>Shadow</key>
 					<dict>
 						<key>Color</key>
@@ -643,10 +663,6 @@
 		<dict>
 			<key>Family</key>
 			<string>Lucida Grande</string>
-			<key>Traits</key>
-			<string>Bold</string>
-			<key>Weight</key>
-			<real>3</real>
 			<key>Size</key>
 			<integer>11</integer>
 			<key>Alignment</key>
@@ -661,7 +677,7 @@
 				<key>Default</key>
 				<dict>
 					<key>Color</key>
-					<string>rgba(232,232,232,1.0)</string>
+					<string>rgba(228,228,228,1.0)</string>
 					<key>Shadow</key>
 					<dict>
 						<key>Color</key>
@@ -798,11 +814,11 @@
 			<key>Family</key>
 			<string>Lucida Grande</string>
 			<key>Size</key>
-			<integer>10</integer>
+			<integer>11</integer>
 			<key>Traits</key>
 			<string>Bold</string>
 			<key>Weight</key>
-			<integer>8</integer>
+			<integer>11</integer>
 			<key>Color</key>
 			<string>white</string>
 			<key>States</key>
@@ -834,11 +850,11 @@
 			<key>Family</key>
 			<string>Lucida Grande</string>
 			<key>Size</key>
-			<integer>10</integer>
+			<integer>11</integer>
 			<key>Traits</key>
 			<string>Bold</string>
 			<key>Weight</key>
-			<integer>8</integer>
+			<integer>11</integer>
 			<key>Color</key>
 			<string>black</string>
 			<key>States</key>
@@ -868,6 +884,59 @@
 	</dict>
 	<key>Images</key>
 	<dict>
+		<key>hud_textfield_background</key>
+		<dict>
+			<key>Resource</key>
+			<string>hud_textfield</string>
+			<key>States</key>
+			<dict>
+				<key>Window Active, Disabled, Unfocused</key>
+				<dict>
+					<key>Parts</key>
+					<array>
+						<string>{{0,46},{2,23}}</string>
+						<string>{{2,46},{1,23}}</string>
+						<string>{{3,46},{2,23}}</string>
+					</array>
+				</dict>
+				<key>Window Active, Disabled, Focused</key>
+				<dict>
+					<key>Parts</key>
+					<array>
+						<string>{{0,46},{2,23}}</string>
+						<string>{{2,46},{1,23}}</string>
+						<string>{{3,46},{2,23}}</string>
+					</array>
+				</dict>
+				<key>Window Active, Enabled</key>
+				<dict>
+					<key>Parts</key>
+					<array>
+						<string>{{0,0},{2,23}}</string>
+						<string>{{2,0},{1,23}}</string>
+						<string>{{3,0},{2,23}}</string>
+					</array>
+				</dict>
+				<key>Window Active, Focused</key>
+				<dict>
+					<key>Parts</key>
+					<array>
+						<string>{{0,23},{2,23}}</string>
+						<string>{{2,23},{1,23}}</string>
+						<string>{{3,23},{2,23}}</string>
+					</array>
+				</dict>
+				<key>Window Inactive</key>
+				<dict>
+					<key>Parts</key>
+					<array>
+						<string>{{0,46},{2,23}}</string>
+						<string>{{2,46},{1,23}}</string>
+						<string>{{3,46},{2,23}}</string>
+					</array>
+				</dict>
+			</dict>
+		</dict>
 		<key>hud_close_button</key>
 		<dict>
 			<key>Resource</key>

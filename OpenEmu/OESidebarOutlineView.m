@@ -32,13 +32,36 @@
 #import <objc/runtime.h>
 #import "OESidebarOutlineButtonCell.h"
 #import "OESideBarGroupItem.h"
-NSString *const OESidebarConsolesNotCollapsibleKey = @"sidebarConsolesNotCollapsible";
-NSString *const OESidebarMinWidth = @"sidebarMinWidth";
-NSString *const OESidebarMaxWidth = @"sidebarMaxWidth";
-NSString *const OEMainViewMinWidth = @"mainViewMinWidth";
+#import "OEMenu.h"
+
+#import "OEDBSystem.h"
+
+NSString *const OESidebarConsolesNotCollapsibleKey   = @"OESidebarConsolesNotCollapsible";
+NSString *const OESidebarTogglesSystemNotification   = @"OESidebarTogglesSystemNotification";
+
+@interface OESidebarOutlineView ()
+{
+    // This should only be used for drawing the highlight
+    NSInteger _highlightedRow;
+}
+- (void)OE_selectRowForMenuItem:(NSMenuItem *)menuItem;
+- (void)OE_renameRowForMenuItem:(NSMenuItem *)menuItem;
+- (void)OE_removeRowForMenuItem:(NSMenuItem *)menuItem;
+- (void)OE_toggleSystemForMenuItem:(NSMenuItem *)menuItem;
+- (void)OE_duplicateCollectionForMenuItem:(NSMenuItem *)menuItem;
+- (void)OE_toggleGroupForMenuItem:(NSMenuItem *)menuItem;
+@end
+
+@interface NSOutlineView (ApplePrivateOverrides)
+- (id)_highlightColorForCell:(NSCell *)cell;
+- (NSRect)_dropHighlightBackgroundRectForRow:(NSInteger)arg1;
+- (void)_setNeedsDisplayForDropCandidateRow:(NSInteger)arg1 operation:(NSUInteger)arg2 mask:(NSUInteger)arg3;
+- (void)_drawDropHighlightOnRow:(NSInteger)arg1;
+- (id)_dropHighlightColor;
+- (void)_flashOutlineCell;
+@end
 
 @implementation OESidebarOutlineView
-@synthesize dragDelegate;
 
 - (id)initWithCoder:(NSCoder *)aDecoder
 {    
@@ -46,6 +69,8 @@ NSString *const OEMainViewMinWidth = @"mainViewMinWidth";
     if (self) 
     {
         [self setupOutlineCell];
+        [self OE_setupDefaultColors];
+        _highlightedRow = -1;
     }
     return self;
 }
@@ -56,74 +81,208 @@ NSString *const OEMainViewMinWidth = @"mainViewMinWidth";
     if (self) 
     {
         [self setupOutlineCell];
+        [self OE_setupDefaultColors];
+        _highlightedRow = -1;
     }
-    
+
     return self;
 }
 
-#pragma mark -
-#pragma mark Drag and Drop
-
-- (NSDragOperation)draggingEntered:(id<NSDraggingInfo>)sender
+- (void)OE_setupDefaultColors
 {
-    return [self.dragDelegate draggingEntered:sender];
+    [self setDropBorderColor:[NSColor colorWithDeviceRed:0.03 green:0.41 blue:0.85 alpha:1.0]];
+    [self setDropBackgroundColor:[NSColor colorWithDeviceRed:0.03 green:0.24 blue:0.34 alpha:1.0]];
+    [self setDropBorderWidth:2.0];
+    [self setDropCornerRadius:8.0];
 }
 
-- (NSDragOperation)draggingUpdated:(id<NSDraggingInfo>)sender
+- (void)drawRect:(NSRect)dirtyRect
 {
-    return [self.dragDelegate draggingUpdated:sender];
-}
+    [super drawRect:[self bounds]];
 
-- (void)draggingEnded:(id<NSDraggingInfo>)sender
-{
-    return [self.dragDelegate draggingEnded:sender];
-}
-
-- (void)draggingExited:(id<NSDraggingInfo>)sender
-{
-    return [self.dragDelegate draggingExited:sender];
-}
-
-- (BOOL)prepareForDragOperation:(id<NSDraggingInfo>)sender
-{
-    return [self.dragDelegate prepareForDragOperation:sender];
-}
-
-- (BOOL)performDragOperation:(id<NSDraggingInfo>)sender
-{
-    return [self.dragDelegate performDragOperation:sender];
-}
-
-- (void)concludeDragOperation:(id<NSDraggingInfo>)sender
-{
-    return [self.dragDelegate concludeDragOperation:sender];
+    if(_highlightedRow != -1)
+        [self _drawDropHighlightOnRow:_highlightedRow];
 }
 
 #pragma mark -
+#pragma mark Menu
 
-- (void)reloadData
+- (NSMenu *)menuForEvent:(NSEvent *)event
 {
-    [super reloadData];
-    
-    if([[NSUserDefaults standardUserDefaults] boolForKey:OESidebarConsolesNotCollapsibleKey])
-        [self expandItem:[self itemAtRow:0]];
+    [[self window] makeFirstResponder:self];
+
+    NSPoint mouseLocationInWindow = [event locationInWindow];
+    NSPoint mouseLocationInView = [self convertPoint:mouseLocationInWindow fromView:nil];
+    NSInteger index = [self rowAtPoint:mouseLocationInView];
+
+    if(index == -1) return nil;
+    id item = [self itemAtRow:index];
+
+    _highlightedRow = index;
+    [self setNeedsDisplay];
+
+    NSMenu *menu = [[NSMenu alloc] init];
+    NSMenuItem *menuItem;
+    NSString *title;
+
+    if([item isGroupHeaderInSidebar])
+    {
+        title = [self isItemExpanded:item] ? NSLocalizedString(@"Collapse", @"") : NSLocalizedString(@"Expand", @"");
+
+        menuItem = [[NSMenuItem alloc] initWithTitle:title action:@selector(OE_toggleGroupForMenuItem:) keyEquivalent:@""];
+        [menuItem setRepresentedObject:item];
+        [menu addItem:menuItem];
+
+        if(index == 0)
+        {
+            [menu addItem:[NSMenuItem separatorItem]];
+
+            for(OEDBSystem *system in [OEDBSystem allSystems])
+            {
+                menuItem = [[NSMenuItem alloc] initWithTitle:[system name] action:@selector(OE_toggleSystemForMenuItem:) keyEquivalent:@""];
+                [menuItem setRepresentedObject:system];
+                [menuItem setState:[[system enabled] boolValue] ? NSOnState : NSOffState];
+                [menu addItem:menuItem];
+            }
+        }
+    }
+    else if([item isKindOfClass:[OEDBSystem class]])
+    {
+        menuItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Open Library", @"")
+                                              action:@selector(OE_selectRowForMenuItem:)
+                                       keyEquivalent:@""];
+        [menuItem setTag:index];
+        [menu addItem:menuItem];
+
+        [menu addItem:[NSMenuItem separatorItem]];
+
+        NSString *title = [NSString stringWithFormat:@"%@ \"%@\"", NSLocalizedString(@"Hide", @""), [item name]];
+        menuItem = [[NSMenuItem alloc] initWithTitle:title action:@selector(OE_toggleSystemForMenuItem:) keyEquivalent:@""];
+        [menuItem setRepresentedObject:item];
+        [menu addItem:menuItem];
+    }
+    else
+    {
+        menuItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Open Collection", @"")
+                                              action:@selector(OE_selectRowForMenuItem:)
+                                       keyEquivalent:@""];
+        [menuItem setTag:index];
+        [menu addItem:menuItem];
+
+        if([item isEditableInSidebar])
+        {
+            [menu addItem:[NSMenuItem separatorItem]];
+
+            title = [NSString stringWithFormat:@"%@ \"%@\"", NSLocalizedString(@"Rename", @""), [item sidebarName]];
+            menuItem = [[NSMenuItem alloc] initWithTitle:title action:@selector(OE_renameRowForMenuItem:) keyEquivalent:@""];
+            [menuItem setTag:index];
+            [menu addItem:menuItem];
+
+            menuItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Duplicate Collection", @"")
+                                                  action:@selector(OE_duplicateCollectionForMenuItem:)
+                                           keyEquivalent:@""];
+            [menuItem setRepresentedObject:item];
+            [menu addItem:menuItem];
+            
+            menuItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Delete Collection", @"")
+                                                  action:@selector(OE_removeRowForMenuItem:)
+                                           keyEquivalent:@""];
+            [menuItem setTag:index];
+            [menu addItem:menuItem];
+        }
+    }
+
+    OEMenuStyle style = OEMenuStyleDark;
+    if([[NSUserDefaults standardUserDefaults] boolForKey:OEMenuOptionsStyleKey]) style = OEMenuStyleLight;
+
+    NSDictionary *options = [NSDictionary dictionaryWithObject:[NSNumber numberWithUnsignedInteger:style] forKey:OEMenuOptionsStyleKey];
+    [OEMenu openMenu:menu withEvent:event forView:self options:options];
+
+    _highlightedRow = -1;
+    [self setNeedsDisplay];
+
+    return nil;
 }
 
-- (void)reloadItem:(id)item
+- (void)OE_selectRowForMenuItem:(NSMenuItem *)menuItem
 {
-    [super reloadItem:item];
-    
-    if([[NSUserDefaults standardUserDefaults] boolForKey:OESidebarConsolesNotCollapsibleKey])
-        [self expandItem:[self itemAtRow:0]];
+    [self selectRowIndexes:[NSIndexSet indexSetWithIndex:[menuItem tag]] byExtendingSelection:NO];
 }
 
+- (void)OE_renameRowForMenuItem:(NSMenuItem *)menuItem
+{
+    [NSApp sendAction:@selector(renameItemForMenuItem:) to:[self dataSource] from:menuItem];
+}
+
+- (void)OE_removeRowForMenuItem:(NSMenuItem *)menuItem
+{
+    [NSApp sendAction:@selector(removeItemForMenuItem:) to:[self dataSource] from:menuItem];
+}
+
+- (void)OE_toggleSystemForMenuItem:(NSMenuItem *)menuItem
+{
+    [[NSNotificationCenter defaultCenter] postNotificationName:OESidebarTogglesSystemNotification object:[menuItem representedObject]];
+}
+
+- (void)OE_duplicateCollectionForMenuItem:(NSMenuItem *)menuItem
+{
+    [NSApp sendAction:@selector(duplicateCollection:) to:[self dataSource] from:[menuItem representedObject]];
+}
+
+- (void)OE_toggleGroupForMenuItem:(NSMenuItem *)menuItem
+{
+    id item = [menuItem representedObject];
+
+    if([self isItemExpanded:item])
+        [self collapseItem:item];
+    else
+        [self expandItem:item];
+}
+
+#pragma mark - Calculating rects
+- (NSRect)rectOfRow:(NSInteger)row
+{
+    // We substract 1 here because the view is 1px wider than it should be so it can show a 1px black line on the right side that easily disappears when the sidebar is collapsed
+    NSRect rect = [super rectOfRow:row];
+    rect.size.width -= 1.0;
+    return rect;
+}
+
+- (NSRect)frameOfOutlineCellAtRow:(NSInteger)row
+{
+    if(row==0 && [[NSUserDefaults standardUserDefaults] boolForKey:OESidebarConsolesNotCollapsibleKey])
+        return NSZeroRect;
+    
+    NSRect rect = [super frameOfOutlineCellAtRow:row];
+    rect.origin.y += 3;
+    return rect;
+}
+
+- (NSRect)rectOfGroup:(id)item
+{
+    if(item == nil)
+    {
+        NSRect bounds = [self bounds];
+        bounds.size.width -= 1;
+        bounds.size.height -= 2.0;
+        return bounds;
+    }
+
+    if(![self isItemExpanded:item])
+        return [self rectOfRow:[self rowForItem:item]];
+    
+    // TODO: this will break when we add collection folders that can have children on their own
+    NSUInteger children = [[self dataSource] outlineView:self numberOfChildrenOfItem:item];
+    NSRect firstItem = [self rectOfRow:[self rowForItem:item]];
+    NSRect lastItem  = [self rectOfRow:[self rowForItem:item] + children];
+    
+    return NSMakeRect(NSMinX(firstItem), NSMinY(firstItem), NSMaxX(lastItem)-NSMinX(firstItem), NSMaxY(lastItem)-NSMinY(firstItem));
+}
+
+#pragma mark - Selection Highlight
 - (id)_highlightColorForCell:(NSCell *)cell
 {
-    // we need to override this to return nil
-    // or we'll see the default selection rectangle when the app is running 
-    // in any OS before leopard
-    
-    // you can also return a color if you simply want to change the table's default selection color
+    // disable default selection
     return nil;
 }
 
@@ -139,7 +298,8 @@ NSString *const OEMainViewMinWidth = @"mainViewMinWidth";
     NSColor *gradientBottom;
     
     if(isActive)
-    { // Active
+    {
+        // Active
         topLineColor = [NSColor colorWithDeviceRed:0.373 green:0.584 blue:0.91 alpha:1];
         bottomLineColor = [NSColor colorWithDeviceRed:0.157 green:0.157 blue:0.157 alpha:1];
         
@@ -147,7 +307,8 @@ NSString *const OEMainViewMinWidth = @"mainViewMinWidth";
         gradientBottom = [NSColor colorWithDeviceRed:0.137 green:0.243 blue:0.906 alpha:1];
     }
     else 
-    { // Inactive
+    {
+        // Inactive
         topLineColor = [NSColor colorWithDeviceRed:0.671 green:0.671 blue:0.671 alpha:1];
         bottomLineColor = [NSColor colorWithDeviceRed:0.184 green:0.184 blue:0.184 alpha:1];
         
@@ -155,21 +316,17 @@ NSString *const OEMainViewMinWidth = @"mainViewMinWidth";
         gradientBottom = [NSColor colorWithDeviceRed:0.443 green:0.443 blue:0.447 alpha:1];
     }
     
-    NSRange aVisibleRowIndexes = [self rowsInRect:theClipRect];
+    // draw highlight for visible & selected rows
+    NSRange visibleRows = [self rowsInRect:theClipRect];
     NSIndexSet *aSelectedRowIndexes = [self selectedRowIndexes];
-    NSUInteger aRow = aVisibleRowIndexes.location;
-    NSUInteger anEndRow = aRow + aVisibleRowIndexes.length;
-     
-    // draw highlight for the visible, selected rows
-    for( ; aRow < anEndRow; aRow++)
+    for(NSUInteger aRow=visibleRows.location ; aRow < NSMaxRange(visibleRows); aRow++)
     {
         if([aSelectedRowIndexes containsIndex:aRow])
         {
             NSRect rowFrame = [self rectOfRow:aRow];
-            
             NSRect innerTopLine = NSMakeRect(rowFrame.origin.x, rowFrame.origin.y+1, rowFrame.size.width, 1);
             NSRect topLine = NSMakeRect(rowFrame.origin.x, rowFrame.origin.y, rowFrame.size.width, 1);
-            NSRect bottomLine = NSMakeRect(rowFrame.origin.x, rowFrame.origin.y+rowFrame.size.height-1, rowFrame.size.width+3, 1);
+            NSRect bottomLine = NSMakeRect(rowFrame.origin.x, rowFrame.origin.y+rowFrame.size.height-1, rowFrame.size.width, 1);
             
             [topLineColor setFill];
             NSRectFill(innerTopLine);
@@ -178,54 +335,65 @@ NSString *const OEMainViewMinWidth = @"mainViewMinWidth";
             NSRectFill(topLine);
             NSRectFill(bottomLine);
             
-            NSRect gradientRect = rowFrame;
-            gradientRect.size.height -= 3;
-            gradientRect.origin.y += 2;
+            rowFrame.size.height -= 3;
+            rowFrame.origin.y += 2;
             
             NSGradient *selectionGradient = [[NSGradient alloc] initWithStartingColor:gradientTop endingColor:gradientBottom];
-            [selectionGradient drawInRect:gradientRect angle:90];
+            [selectionGradient drawInRect:rowFrame angle:90];
         }
     }
 }
 
-- (NSRect)rectOfRow:(NSInteger)row 
+#pragma mark - Drop Highlight
+- (struct CGRect)_dropHighlightBackgroundRectForRow:(long long)arg1
 {
-    NSRect rect = [super rectOfRow:row];
-    rect.size.width -= 1;
-    return rect;
+    return NSZeroRect;
 }
 
-- (NSRect)frameOfOutlineCellAtRow:(NSInteger)row
+- (void)_setNeedsDisplayForDropCandidateRow:(long long)arg1 operation:(unsigned long long)arg2 mask:(unsigned long long)arg3
 {
-    if(row==0 && [[NSUserDefaults standardUserDefaults] boolForKey:OESidebarConsolesNotCollapsibleKey])
-        return NSZeroRect;
-    
-    NSRect rect = [super frameOfOutlineCellAtRow:row];
-    
-    rect.origin.y += 3;
-    
-    return rect;
+    [self setNeedsDisplayInRect:[self bounds]];
 }
 
-#pragma mark -
-- (void)expandItem:(id)item expandChildren:(BOOL)expandChildren
+- (void)_drawDropHighlightOnRow:(long long)arg1
 {
-    [super expandItem:item expandChildren:expandChildren];
-    if([item isKindOfClass:[OESidebarGroupItem class]])
+    NSRect rect = [self rectOfGroup:[self itemAtRow:arg1]];
+    if([[self itemAtRow:arg1] isGroupHeaderInSidebar] || arg1 == -1)
     {
-        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:[item autosaveName]];
+        rect.origin.y += 2.0;
+        
+        rect.origin.y += 4.0;
+        rect.size.height -= 4.0;
     }
+    
+    rect = NSInsetRect(rect, 3, 1);
+    
+    NSBezierPath *path = [NSBezierPath bezierPathWithRoundedRect:rect xRadius:[self dropCornerRadius] yRadius:[self dropCornerRadius]];
+    [path setLineWidth:[self dropBorderWidth]];
+    
+    [[self dropBackgroundColor] setFill];
+    [path fill];
+    
+    [[self dropBorderColor] setStroke];
+    [path stroke];
+    
+    
+    self.isDrawingAboveDropHighlight = YES;
+    NSRange rowsInRect = [self rowsInRect:rect];
+    for(NSInteger row=rowsInRect.location; row<NSMaxRange(rowsInRect); row++) {
+        [self drawRow:row clipRect:[self rectOfRow:row]];
+    }
+    self.isDrawingAboveDropHighlight = NO;
 }
 
-- (void)collapseItem:(id)item collapseChildren:(BOOL)expandChildren
+- (id)_dropHighlightColor
 {
-    [super collapseItem:item collapseChildren:expandChildren];
-    if([item isKindOfClass:[OESidebarGroupItem class]])
-    {
-        [[NSUserDefaults standardUserDefaults] setBool:NO forKey:[item autosaveName]];
-    }
+    return [NSColor colorWithDeviceRed:8/255.0 green:105/255.0 blue:216/255.0 alpha:1.0];
 }
-#pragma mark -
+
+- (void)_flashOutlineCell
+{}
+#pragma mark - Key Handling
 - (void)keyDown:(NSEvent *)theEvent
 {
     if([theEvent keyCode] == 51 || [theEvent keyCode] == 117)

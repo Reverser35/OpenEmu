@@ -31,7 +31,6 @@
 #import "OETableTextFieldCell.h"
 
 #import "OEMenu.h"
-#import "OEGridView.h"
 
 
 static NSColor *cellEditingFillColor, *textColor, *cellSelectedTextColor, *strokeColor;
@@ -95,7 +94,7 @@ static NSGradient *highlightGradient, *normalGradient;
 			[newHeader setFont:[[NSFontManager sharedFontManager] fontWithFamily:@"Lucida Grande" traits:NSBoldFontMask weight:9 size:11]];
 			[aColumn setHeaderCell: newHeader];
 		}
-        
+
         [self setHeaderClickable:YES];
         [self setCornerView:[[OETableCornerView alloc] init]];
 	}
@@ -112,10 +111,9 @@ static NSGradient *highlightGradient, *normalGradient;
 	
 	[alternateRowBackground setFill];
 	
-	NSRect rect = [self visibleRect];
-	for(float i=[self rowHeight]+[self intercellSpacing].height; i<rect.origin.y+rect.size.height; i+=2*([self rowHeight]+[self intercellSpacing].height))
+	for(float i=[self rowHeight]+[self intercellSpacing].height; i<clipRect.origin.y+clipRect.size.height; i+=2*([self rowHeight]+[self intercellSpacing].height))
 	{
-		NSRect rowRect = NSMakeRect(rect.origin.x, i, rect.size.width, [self rowHeight]+[self intercellSpacing].height);
+		NSRect rowRect = NSMakeRect(clipRect.origin.x, i, clipRect.size.width, [self rowHeight]+[self intercellSpacing].height);
 		NSRectFill(rowRect);
 	}
 }
@@ -176,8 +174,8 @@ static NSGradient *highlightGradient, *normalGradient;
 	NSRect fillRect;
 	fillRect.size = gridSize;
 	fillRect.origin = aRect.origin;
-		
-	for(NSUInteger i=0; i < [[self tableColumns] count]-1; i++)
+    
+	for(NSUInteger i=0; i < [[self tableColumns] count]; i++)
 	{
         if([[[self tableColumns] objectAtIndex:i] isHidden])
             continue;
@@ -226,11 +224,37 @@ static NSGradient *highlightGradient, *normalGradient;
 }
 
 - (void)setHeaderClickable:(BOOL)flag{
-    for (NSTableColumn *aColumn in [self tableColumns]) 
+    for(NSTableColumn *aColumn in [self tableColumns])
     {
         OETableHeaderCell *cell = [aColumn headerCell];
         [cell setClickable:flag];
     }
+}
+
+- (void)setHeaderState:(NSDictionary *)newHeaderState
+{
+    if(newHeaderState)
+    {
+        _headerState = newHeaderState;
+
+        for(NSTableColumn *column in [self tableColumns])
+        {
+            BOOL state = [[newHeaderState valueForKey:[column identifier]] boolValue];
+            [column setHidden:state];
+        }
+    }
+}
+
+- (NSDictionary *)defaultHeaderState
+{
+    NSMutableDictionary *defaultHeaderState = [[NSMutableDictionary alloc] init];
+
+    for(NSTableColumn *column in [self tableColumns])
+    {
+        [defaultHeaderState setValue:[NSNumber numberWithBool:NO] forKey:[column identifier]];
+    }
+
+    return defaultHeaderState;
 }
 
 - (NSMenu *)menuForEvent:(NSEvent *)theEvent
@@ -240,8 +264,8 @@ static NSGradient *highlightGradient, *normalGradient;
     NSPoint mouseLocationInWindow = [theEvent locationInWindow];
     NSPoint mouseLocationInView = [self convertPoint:mouseLocationInWindow fromView:nil];
     
-    NSUInteger index = [self rowAtPoint:mouseLocationInView];
-    if(index != NSNotFound && [[self dataSource] respondsToSelector:@selector(tableView:menuForItemsAtIndexes:)])
+    NSInteger index = [self rowAtPoint:mouseLocationInView];
+    if(index != -1 && [[self dataSource] respondsToSelector:@selector(tableView:menuForItemsAtIndexes:)])
     {
         NSRect rowRect = [self rectOfRow:index];
         mouseLocationInView.y = rowRect.origin.y - rowRect.size.height/2;
@@ -254,11 +278,11 @@ static NSGradient *highlightGradient, *normalGradient;
         NSMenu *contextMenu = [(id <OETableViewMenuSource>)[self dataSource] tableView:self menuForItemsAtIndexes:indexes];
         
         OEMenuStyle style = OEMenuStyleDark;
-        if([[NSUserDefaults standardUserDefaults] boolForKey:OELightStyleGridViewMenu]) style = OEMenuStyleLight;
+        if([[NSUserDefaults standardUserDefaults] boolForKey:OEMenuOptionsStyleKey]) style = OEMenuStyleLight;
         
         NSDictionary *options = [NSDictionary dictionaryWithObject:[NSNumber numberWithUnsignedInteger:style] forKey:OEMenuOptionsStyleKey];
         [OEMenu openMenu:contextMenu withEvent:theEvent forView:self options:options];
-
+        return nil;
     }
 
     return [super menuForEvent:theEvent];
@@ -270,6 +294,15 @@ static NSGradient *highlightGradient, *normalGradient;
         [NSApp sendAction:@selector(delete:) to:nil from:self];
     else
         [super keyDown:theEvent];        
+}
+
+- (void)mouseDown:(NSEvent *)theEvent
+{
+    // AppKit posts a control-mouse-down event when the user control-clicks the view and -menuForEvent: returns nil
+    // since a nil return normally means there is no contextual menu.
+    // However, we do show a menu before returning nil from -menuForEvent:, so we need to ignore control-mouse-down events.
+    if(!([theEvent modifierFlags] & NSControlKeyMask))
+        [super mouseDown:theEvent];
 }
 
 - (void)cancelOperation:(id)sender

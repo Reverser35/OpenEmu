@@ -42,12 +42,12 @@ static NSString * OE_stringFromElapsedTime(NSTimeInterval);
 
 - (NSString *)gridTitle
 {
-    return [self name];
+    return [self displayName];
 }
 
 - (void)setGridTitle:(NSString *)str
 {
-    [self setName:str];
+    [self setDisplayName:str];
 }
 
 - (int)gridStatus
@@ -133,7 +133,7 @@ static NSString * OE_stringFromElapsedTime(NSTimeInterval);
 
 - (NSString *)imageTitle
 {
-    return [self name];
+    return [self displayName];
 }
 
 - (NSString *)imageSubtitle
@@ -195,12 +195,12 @@ static NSString * OE_stringFromElapsedTime(NSTimeInterval);
 
 - (void)setListViewTitle:(NSString*)title
 {
-    [self setName:title];
+    [self setDisplayName:title];
 }
 
 - (NSString *)listViewTitle
 {
-    return [self name];
+    return [self displayName];
 }
 
 - (NSString *)listViewLastPlayed

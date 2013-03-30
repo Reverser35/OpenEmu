@@ -81,8 +81,8 @@ static const CGFloat _OEHUDWindowTitleTextTopMargin    =  2.0;
 // - All other delegate methods are forwarded from superDelegate to localDelegate
 // - Upon -mouseUp:, if the window is being dragged then dragging has ended, so send -windowDidMove: to localDelegate
 @interface OEHUDWindowDelegateProxy : NSObject <NSWindowDelegate>
-@property(nonatomic, weak) id<NSWindowDelegate> superDelegate;
-@property(nonatomic, weak) id<NSWindowDelegate> localDelegate;
+@property(nonatomic, unsafe_unretained) id<NSWindowDelegate> superDelegate; // TODO: replace unsafe_unretained with weak when we start requiring 10.8
+@property(nonatomic, unsafe_unretained) id<NSWindowDelegate> localDelegate;
 @end
 
 @implementation OEHUDWindow
@@ -378,7 +378,7 @@ static const CGFloat _OEHUDWindowTitleTextTopMargin    =  2.0;
         [closeButton setThemeKey:@"hud_close_button"];
         
         [closeButton setAutoresizingMask:NSViewMaxXMargin | NSViewMinYMargin];
-        [closeButton setAction:@selector(terminateEmulation)];
+        [closeButton setAction:@selector(performClose:)];
         [self addSubview:closeButton];
     }
     return self;
@@ -399,7 +399,7 @@ static const CGFloat _OEHUDWindowTitleTextTopMargin    =  2.0;
     [[NSColor clearColor] setFill];
     NSRectFill([self bounds]);
 
-    BOOL isFocused = [[self window].parentWindow isMainWindow] && [NSApp isActive];
+    BOOL isFocused = [[[self window] parentWindow] isKeyWindow] && [NSApp isActive];
     
     NSImage *borderImage = isFocused ? [NSImage imageNamed:@"hud_window_active"] : [NSImage imageNamed:@"hud_window_inactive"];
     [borderImage drawInRect:[self bounds] fromRect:NSZeroRect operation:NSCompositeSourceOver/*NSCompositeSourceOver*/ fraction:1.0 respectFlipped:YES hints:nil leftBorder:14 rightBorder:14 topBorder:23 bottomBorder:23];
@@ -435,6 +435,14 @@ static const CGFloat _OEHUDWindowTitleTextTopMargin    =  2.0;
         NSAttributedString *attributedWindowTitle = [[NSAttributedString alloc] initWithString:windowTitle attributes:titleAttributes];
         [attributedWindowTitle drawInRect:titleTextRect];
     }
+}
+
+- (NSView *)hitTest:(NSPoint)aPoint
+{
+    // This makes sure the parent window becomes key window, even when clicking the close button
+    [[[self window] parentWindow] makeKeyWindow];
+
+    return [super hitTest:aPoint];
 }
 
 - (void)mouseDown:(NSEvent *)theEvent

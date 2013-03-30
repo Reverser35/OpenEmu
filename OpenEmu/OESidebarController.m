@@ -33,6 +33,8 @@
 #import "OESidebarOutlineView.h"
 #import "OEDBGame.h"
 #import "OEDBAllGamesCollection.h"
+#import "OEDBSystem.h"
+#import "OEDBSmartCollection.h"
 #import "OECollectionViewItemProtocol.h"
 
 #import "OEHUDAlert.h"
@@ -48,6 +50,11 @@ NSString * const OESidebarSelectionDidChangeNotificationName = @"OESidebarSelect
 
 NSString * const OESidebarGroupConsolesAutosaveName    = @"sidebarConsolesItem";
 NSString * const OESidebarGroupCollectionsAutosaveName = @"sidebarCollectionsItem";
+
+NSString * const OESidebarMinWidth = @"sidebarMinWidth";
+NSString * const OESidebarMaxWidth = @"sidebarMaxWidth";
+NSString * const OEMainViewMinWidth = @"mainViewMinWidth";
+
 @interface OESidebarController ()
 {
     NSArray *groups;
@@ -55,8 +62,6 @@ NSString * const OESidebarGroupCollectionsAutosaveName = @"sidebarCollectionsIte
     NSArray *collections;
     id editingItem;
 }
-
-- (void)OE_setupDrop;
 
 @end
 
@@ -104,7 +109,7 @@ NSString * const OESidebarGroupCollectionsAutosaveName = @"sidebarCollectionsIte
     [sidebarView setIndentationPerLevel:7];
     [sidebarView setAutosaveName:@"sidebarView"];
     [sidebarView setAutoresizesOutlineColumn:NO];
-    [sidebarView registerForDraggedTypes:[NSArray arrayWithObjects:@"org.openEmu.rom", NSFilenamesPboardType, nil]];
+    [sidebarView registerForDraggedTypes:[NSArray arrayWithObjects:OEPasteboardTypeGame, NSFilenamesPboardType, nil]];
     [sidebarView setDelegate:self];
     [sidebarView setDataSource:self];
     for(OESidebarGroupItem *groupItem in [self groups])
@@ -125,8 +130,6 @@ NSString * const OESidebarGroupCollectionsAutosaveName = @"sidebarCollectionsIte
     else
         [sidebarView setBackgroundColor:[NSColor colorWithDeviceWhite:0.19 alpha:1.0]];
     
-    [self OE_setupDrop];
-
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(systemsChanged) name:OEDBSystemsDidChangeNotification object:nil];
 }
  
@@ -189,6 +192,19 @@ NSString * const OESidebarGroupCollectionsAutosaveName = @"sidebarCollectionsIte
     return item;
 }
 
+- (id)duplicateCollection:(id)originalCollection
+{
+    id duplicateCollection = [[self database] addNewCollection:[originalCollection valueForKey:@"name"]];
+    
+    [[duplicateCollection mutableGames] setSet:[originalCollection games]];
+    [[duplicateCollection managedObjectContext] save:nil];
+
+    [self reloadData];
+    [self expandCollections:self];
+
+    return duplicateCollection;
+}
+
 - (void)reloadData
 {
     if(![self database]) return;
@@ -249,7 +265,6 @@ NSString * const OESidebarGroupCollectionsAutosaveName = @"sidebarCollectionsIte
 {
     id        previousSelectedItem = [self selectedSidebarItem];
     NSInteger previousSelectedRow  = [[self view] selectedRow];
-    DLog(@"previous row is %ld, item is %@", previousSelectedRow, previousSelectedItem);
     
     [self reloadData];
 
@@ -257,8 +272,6 @@ NSString * const OESidebarGroupCollectionsAutosaveName = @"sidebarCollectionsIte
 
     NSInteger rowToSelect = NSNotFound;
     NSInteger reloadedRowForPreviousSelectedItem = [[self view] rowForItem:previousSelectedItem];
-
-    DLog(@"reloaded row is %ld", (long)reloadedRowForPreviousSelectedItem);
 
     // The previously selected item may have been disabled/removed, so we should select another item...
     if(reloadedRowForPreviousSelectedItem == -1)
@@ -283,7 +296,7 @@ NSString * const OESidebarGroupCollectionsAutosaveName = @"sidebarCollectionsIte
     else if(reloadedRowForPreviousSelectedItem != previousSelectedRow)
         rowToSelect = reloadedRowForPreviousSelectedItem;
 
-    if(rowToSelect != previousSelectedRow)
+    if(rowToSelect != previousSelectedRow && rowToSelect != NSNotFound)
     {
         [[self view] selectRowIndexes:[NSIndexSet indexSetWithIndex:rowToSelect] byExtendingSelection:NO];
         [self outlineViewSelectionDidChange:nil];
@@ -298,51 +311,94 @@ NSString * const OESidebarGroupCollectionsAutosaveName = @"sidebarCollectionsIte
 
 #pragma mark -
 #pragma mark Drag and Drop
-- (void)OE_setupDrop
+- (BOOL)outlineView:(NSOutlineView *)outlineView acceptDrop:(id < NSDraggingInfo >)info item:(id)item childIndex:(NSInteger)index
 {
-    NSArray *acceptedTypes = [NSArray arrayWithObjects:NSFilenamesPboardType, OEPasteboardTypeGame, nil];
-    [[self view] registerForDraggedTypes:acceptedTypes];
-    [(OESidebarOutlineView*)[self view] setDragDelegate:self];
-}
+    NSPasteboard *pboard = [info draggingPasteboard];
+    
+    OEDBCollection *collection = nil;
+    if([item isKindOfClass:[OEDBCollection class]])
+    {
+        collection = item;
+    }
+    else
+    {
+        NSString *name = nil;
+        if([[pboard types] containsObject:OEPasteboardTypeGame])
+        {
+            NSArray *games = [pboard readObjectsForClasses:@[[OEDBGame class]] options:nil];
+            if([games count] == 1) name = [[games lastObject] gameTitle];
+        }
+        else
+        {
+            NSArray *games = [pboard readObjectsForClasses:@[[NSURL class]] options:nil];
+            if([games count] == 1) name = [[[[games lastObject] absoluteString] lastPathComponent] stringByDeletingPathExtension];
+        }
+        collection = [[OELibraryDatabase defaultDatabase] addNewCollection:name];
+        [[collection managedObjectContext] save:nil];
+        [self reloadData];
+        NSInteger index = [outlineView rowForItem:collection];
+        if(index != -1)
+        {
+            [outlineView selectRowIndexes:[NSIndexSet indexSetWithIndex:index] byExtendingSelection:NO];
+        }
+    }
 
-- (NSDragOperation)draggingEntered:(id<NSDraggingInfo>)sender
-{
-    NSPasteboard *pboard = [sender draggingPasteboard];
-    return [[pboard types] containsObject:OEPasteboardTypeGame] || NSFilenamesPboardType?NSDragOperationCopy:NSDragOperationNone;
-}
-
-- (NSDragOperation)draggingUpdated:(id<NSDraggingInfo>)sender
-{
-    return [self draggingEntered:sender];
-}
-
-- (void)draggingEnded:(id<NSDraggingInfo>)sender
-{
-}
-
-- (void)draggingExited:(id<NSDraggingInfo>)sender
-{
-}
-
-- (BOOL)prepareForDragOperation:(id<NSDraggingInfo>)sender
-{
+    if([[pboard types] containsObject:OEPasteboardTypeGame])
+    {
+        if(!collection) return YES;
+            // just add to collection
+            NSArray *games = [pboard readObjectsForClasses:@[[OEDBGame class]] options:nil];
+            [[collection mutableGames] addObjectsFromArray:games];
+            [[collection managedObjectContext] save:nil];
+    }
+    else
+    {
+        // import and add to collection
+        NSArray *files = [pboard readObjectsForClasses:@[[NSURL class]] options:nil];
+        NSURL *collectionID = [[collection objectID] URIRepresentation];
+        OEROMImporter *importer = [[OELibraryDatabase defaultDatabase] importer];
+        [importer importItemsAtURLs:files intoCollectionWithID:collectionID];
+    }
+    
     return YES;
 }
 
-- (BOOL)performDragOperation:(id<NSDraggingInfo>)sender
+- (NSDragOperation)outlineView:(NSOutlineView *)outlineView validateDrop:(id < NSDraggingInfo >)info proposedItem:(id)item proposedChildIndex:(NSInteger)index
 {
-    return NO;
+    NSPasteboard *pboard = [info draggingPasteboard];
+    if(![[pboard types] containsObject:OEPasteboardTypeGame] && ![[pboard types] containsObject:NSFilenamesPboardType])
+        return NSDragOperationNone;
+    
+    // Ignore anything that is between two rows
+    if(index != NSOutlineViewDropOnItemIndex) return NSDragOperationNone;
+    
+    // Allow drop on systems group, ignoring which system exactly is highlighted
+    if(item == [[self groups] objectAtIndex:0] || [item isKindOfClass:[OEDBSystem class]])
+    {
+        [outlineView setDropItem:[[self groups] objectAtIndex:0] dropChildIndex:NSOutlineViewDropOnItemIndex];
+        return NSDragOperationCopy;
+    }
+    
+    // Allow drop on normal collections
+    if([item isKindOfClass:[OEDBCollection class]])
+    {
+        if(index != NSOutlineViewDropOnItemIndex)
+        {
+            index = index != 0 ? index-1:index;
+            [outlineView setDropItem:[self outlineView:outlineView child:index ofItem:item] dropChildIndex:NSOutlineViewDropOnItemIndex];
+        }
+        return NSDragOperationCopy;
+    }
+    
+    // Everything else goes to whole view
+    [outlineView setDropItem:nil dropChildIndex:NSOutlineViewDropOnItemIndex];
+    return NSDragOperationCopy;
 }
-
-- (void)concludeDragOperation:(id<NSDraggingInfo>)sender
-{
-}
-
 #pragma mark -
 #pragma mark NSOutlineView Delegate
 - (void)outlineViewSelectionDidChange:(NSNotification *)notification
 {
-    [[NSNotificationCenter defaultCenter] postNotificationName:OESidebarSelectionDidChangeNotificationName object:self userInfo:[NSDictionary dictionary]];
+    [[NSNotificationCenter defaultCenter] postNotificationName:OESidebarSelectionDidChangeNotificationName object:self userInfo:nil];
 
     if(![self database]) return;
 
@@ -373,9 +429,31 @@ NSString * const OESidebarGroupCollectionsAutosaveName = @"sidebarCollectionsIte
 - (BOOL)outlineView:(NSOutlineView *)outlineView shouldCollapseItem:(id)item
 {
     for(id aGroup in self.groups)
-        if(aGroup != item && [outlineView isItemExpanded:aGroup]) return YES;
-
+        if(aGroup != item && [outlineView isItemExpanded:aGroup])
+        {
+            if([item isKindOfClass:[OESidebarGroupItem class]])
+            {
+                [[NSUserDefaults standardUserDefaults] setBool:NO forKey:[item autosaveName]];
+            }
+            return YES;
+        }
     return NO;
+}
+
+- (BOOL)outlineView:(NSOutlineView *)outlineView shouldExpandItem:(id)item
+{
+    if([item isKindOfClass:[OESidebarGroupItem class]])
+    {
+        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:[item autosaveName]];
+    }
+    return YES;
+}
+
+
+#pragma mark - NSOutlineView Type Select
+- (NSString*)outlineView:(NSOutlineView *)outlineView typeSelectStringForTableColumn:(NSTableColumn *)tableColumn item:(id)item
+{
+    return [item isSelectableInSidebar] ? [item sidebarName] : @"";
 }
 
 #pragma mark -
@@ -467,6 +545,8 @@ NSString * const OESidebarGroupCollectionsAutosaveName = @"sidebarCollectionsIte
         
         if(self.editingItem == nil)
             [(OESidebarCell*)cell setIsEditing:NO];
+        if(self.view.isDrawingAboveDropHighlight)
+            [cell setHighlighted:NO];
     }
 }
 
@@ -475,16 +555,13 @@ NSString * const OESidebarGroupCollectionsAutosaveName = @"sidebarCollectionsIte
     editingItem = newEdItem;
 }
 
-- (void)removeSelectedItemsOfOutlineView:(NSOutlineView*)outlineView
+- (void)removeItemAtIndex:(NSUInteger)index
 {
-    NSIndexSet *indexes = [outlineView selectedRowIndexes];
-    NSUInteger index = [indexes firstIndex];
-    
-    id item = [outlineView itemAtRow:index];
+    id item = [[self view] itemAtRow:index];
     BOOL removeItem = NO;
-    
+
     if([item isEditableInSidebar])
-    {   
+    {
         NSString *msg = NSLocalizedString(@"Do you really want to remove this collection", @"");
         NSString *confirm = NSLocalizedString(@"Remove", @"");
         NSString *cancel = NSLocalizedString(@"Cancel", @"");
@@ -493,19 +570,44 @@ NSString * const OESidebarGroupCollectionsAutosaveName = @"sidebarCollectionsIte
         [alert showSuppressionButtonForUDKey:OESuppressRemoveCollectionConfirmationKey];
         removeItem = [alert runModal];
     }
-    
+
     if(removeItem)
     {
         [[self database] removeCollection:item];
-        
+
         // keep selection on last object if the one we removed was last
-        if(index == [outlineView numberOfRows]-1)
+        if(index == [[self view] numberOfRows]-1)
             index --;
-        
+
         NSIndexSet *selIn = [[NSIndexSet alloc] initWithIndex:index];
-        [outlineView selectRowIndexes:selIn byExtendingSelection:NO];
+        [[self view] selectRowIndexes:selIn byExtendingSelection:NO];
         [self reloadData];
     }
+}
+
+- (void)renameItemAtIndex:(NSUInteger)index
+{
+    id item = [[self view] itemAtRow:index];
+    [self selectItem:item];
+    [self startEditingItem:item];
+}
+
+- (void)removeSelectedItemsOfOutlineView:(NSOutlineView *)outlineView
+{
+    NSIndexSet *indexes = [outlineView selectedRowIndexes];
+    NSUInteger index = [indexes firstIndex];
+
+    [self removeItemAtIndex:index];
+}
+
+- (void)removeItemForMenuItem:(NSMenuItem *)menuItem
+{
+    [self removeItemAtIndex:[menuItem tag]];
+}
+
+- (void)renameItemForMenuItem:(NSMenuItem *)menuItem
+{
+    [self renameItemAtIndex:[menuItem tag]];
 }
 
 #pragma mark -

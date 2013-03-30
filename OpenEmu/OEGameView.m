@@ -79,6 +79,9 @@ static const GLfloat cg_coords[] =
     0, 1
 };
 
+static NSString *const _OEDefaultVideoFilterKey      = @"videoFilter";
+static NSString *const _OESystemVideoFilterKeyFormat = @"videoFilter.%@";
+
 @interface OEGameView ()
 
 // rendering
@@ -234,9 +237,15 @@ static const GLfloat cg_coords[] =
     CGLUnlockContext(cgl_ctx);
 
     // filters
-    NSUserDefaultsController *ctrl = [NSUserDefaultsController sharedUserDefaultsController];
-    [self bind:@"filterName" toObject:ctrl withKeyPath:@"values.videoFilter" options:nil];
-    [self setFilterName:_filterName];
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSString *systemIdentifier = [[_gameResponder controller] systemIdentifier];
+    NSString *filter;
+    filter = [defaults objectForKey:[NSString stringWithFormat:_OESystemVideoFilterKeyFormat, systemIdentifier]];
+    if(filter == nil)
+    {
+        filter = [defaults objectForKey:_OEDefaultVideoFilterKey];
+    }
+    [self setFilterName:filter];
 
     // our texture is in NTSC colorspace from the cores
     _rgbColorSpace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
@@ -252,6 +261,14 @@ static const GLfloat cg_coords[] =
 - (void)toggleVSync:(GLint)swapInt
 {
     [[self openGLContext] setValues:&swapInt forParameter:NSOpenGLCPSwapInterval];
+}
+
+- (void)setPauseEmulation:(BOOL)paused
+{
+    if(paused)
+        CVDisplayLinkStop(_gameDisplayLinkRef);
+    else
+        CVDisplayLinkStart(_gameDisplayLinkRef);
 }
 
 - (void)setGameTitle:(NSString *)title
@@ -432,14 +449,12 @@ static const GLfloat cg_coords[] =
     CGLContextObj cgl_ctx = [[self openGLContext] CGLContextObj];
     CGLSetCurrentContext(cgl_ctx);
 	CGLLockContext(cgl_ctx);
+    
 	[self update];
 
 	NSRect mainRenderViewFrame = [self frame];
-
 	glViewport(0, 0, mainRenderViewFrame.size.width, mainRenderViewFrame.size.height);
-	glClear(GL_COLOR_BUFFER_BIT);
 
-	[[self openGLContext] flushBuffer];
 	CGLUnlockContext(cgl_ctx);
 }
 

@@ -215,12 +215,11 @@
 - (NSString *)md5Hash
 {
     NSString *hash = [self md5];
-    if(hash != nil)
+    if(hash == nil)
     {
         [self OE_calculateHashes];
-        return [self md5HashIfAvailable];
+        hash = [self md5HashIfAvailable];
     }
-    
     return hash;
 }
 
@@ -232,13 +231,11 @@
 - (NSString *)crcHash
 {
     NSString *hash = [self crc32];
-    
-    if(hash != nil)
+    if(hash == nil)
     {
         [self OE_calculateHashes];
-        return [self crcHashIfAvailable];
+        hash = [self crcHashIfAvailable];
     }
-    
     return hash;    
 }
 
@@ -318,8 +315,7 @@
 
 - (OEDBSaveState *)quickSaveStateInSlot:(int)num
 {
-    NSString *quickSaveName = num == 0 ? OESaveStateQuicksaveName:[NSString stringWithFormat:@"%@%d", OESaveStateQuicksaveName, num];
-    
+    NSString *quickSaveName = [OEDBSaveState nameOfQuickSaveInSlot:num];
     NSPredicate *predicate = [NSPredicate predicateWithFormat:@"name beginswith[c] %@", quickSaveName];
     NSSet *set = [self saveStates];
     set = [set filteredSetUsingPredicate:predicate];

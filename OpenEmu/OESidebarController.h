@@ -30,11 +30,15 @@
 
 extern NSString *const OESuppressRemoveCollectionConfirmationKey;
 
+extern NSString *const OESidebarMinWidth;
+extern NSString *const OESidebarMaxWidth;
+extern NSString *const OEMainViewMinWidth;
+
 @class OELibraryDatabase, OESidebarOutlineView;
 @protocol OECollectionViewItemProtocol;
 @protocol OESidebarItem;
 
-@interface OESidebarController : NSViewController <NSOutlineViewDelegate, NSOutlineViewDataSource, OEDraggingDestinationDelegate>
+@interface OESidebarController : NSViewController <NSOutlineViewDelegate, NSOutlineViewDataSource>
 
 - (IBAction)addCollectionAction:(id)sender;
 
@@ -42,11 +46,16 @@ extern NSString *const OESuppressRemoveCollectionConfirmationKey;
 
 - (void)reloadData;
 - (id)addCollection:(BOOL)isSmart;
+- (id)duplicateCollection:(id)originalCollection;
 
 - (void)selectItem:(id)item;
 - (void)startEditingItem:(id)item;
 - (void)expandCollections:(id)sender;
-- (void)removeSelectedItemsOfOutlineView:(NSOutlineView*)outlineView;
+- (void)removeItemAtIndex:(NSUInteger)index;
+- (void)renameItemAtIndex:(NSUInteger)index;
+- (void)removeSelectedItemsOfOutlineView:(NSOutlineView *)outlineView;
+- (void)removeItemForMenuItem:(NSMenuItem *)menuItem;
+- (void)renameItemForMenuItem:(NSMenuItem *)menuItem;
 
 - (id<OESidebarItem>)selectedSidebarItem;
 

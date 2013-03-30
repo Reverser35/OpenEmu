@@ -33,10 +33,10 @@
 #import "NSURL+OELibraryAdditions.h"
 
 
-#define OESaveStateSuffix           @"oesavestate"
 #define OESaveStateDataFile         @"State"
 #define OESaveStateScreenshotFile   @"ScreenShot"
 #define OESaveStateLatestVersion    @"1.0"
+NSString *const OESaveStateSuffix = @"oesavestate";
 
 NSString *const OESaveStateInfoVersionKey           = @"Version";
 NSString *const OESaveStateInfoNameKey              = @"Name";
@@ -52,6 +52,8 @@ NSString *const OESaveStateInfoTimestampKey         = @"Timestamp";
 NSString *const OESaveStateSpecialNamePrefix    = @"OESpecialState_";
 NSString *const OESaveStateAutosaveName         = @"OESpecialState_auto";
 NSString *const OESaveStateQuicksaveName        = @"OESpecialState_quick";
+
+NSString *const OESaveStateUseQuickSaveSlotsKey = @"UseQuickSaveSlots";
 
 @interface OEDBSaveState ()
 + (id)OE_newSaveStateInContext:(NSManagedObjectContext*)context;
@@ -222,10 +224,10 @@ NSString *const OESaveStateQuicksaveName        = @"OESpecialState_quick";
     if(saveState && !fileExists)
     {
         [saveState remove];
-        return;
+        saveState = nil;
     } else if(saveState && fileExists)
     {
-           [saveState readInfoPlist];
+        [saveState readInfoPlist];
     }
     else if(!saveState && [defaultManager fileExistsAtPath:saveStatePath])
     {
@@ -234,6 +236,12 @@ NSString *const OESaveStateQuicksaveName        = @"OESpecialState_quick";
     
     [saveState moveToDefaultLocation];
 }
+
++ (NSString*)nameOfQuickSaveInSlot:(int)slot
+{
+    return slot == 0 ? OESaveStateQuicksaveName:[NSString stringWithFormat:@"%@%d", OESaveStateQuicksaveName, slot];
+}
+
 #pragma mark - Management
 - (BOOL)readInfoPlist
 {
@@ -257,7 +265,6 @@ NSString *const OESaveStateQuicksaveName        = @"OESpecialState_quick";
         [self setCoreVersion:infoCoreVersion];
         [self setRom:rom];
         
-
         if(infoTimestamp)
             [self setTimestamp:infoTimestamp];
         else

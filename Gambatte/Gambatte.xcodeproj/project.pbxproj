@@ -249,6 +249,7 @@
 		94ABD7B91653428B00035061 /* video.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = video.h; sourceTree = "<group>"; };
 		94ABD7DB16534C8300035061 /* libretro.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = libretro.cpp; sourceTree = "<group>"; };
 		94ABD7DC16534C8300035061 /* libretro.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = libretro.h; sourceTree = "<group>"; };
+		94F0DAA916FE2FD5001ECA15 /* gbcpalettes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gbcpalettes.h; sourceTree = "<group>"; };
 		94F2867616C3832E0075A73E /* kaiser50sinc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = kaiser50sinc.cpp; sourceTree = "<group>"; };
 		94F2867716C3832E0075A73E /* kaiser70sinc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = kaiser70sinc.cpp; sourceTree = "<group>"; };
 		94F2867A16C3836B0075A73E /* loadres.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = loadres.h; sourceTree = "<group>"; };
@@ -451,6 +452,7 @@
 		94ABD7681653428B00035061 /* libgambatte */ = {
 			isa = PBXGroup;
 			children = (
+				94F0DAA916FE2FD5001ECA15 /* gbcpalettes.h */,
 				94ABD7DB16534C8300035061 /* libretro.cpp */,
 				94ABD7DC16534C8300035061 /* libretro.h */,
 				94ABD7691653428B00035061 /* include */,
@@ -785,9 +787,10 @@
 					"\"$(SRCROOT)/libgambatte/include\"",
 				);
 				INFOPLIST_FILE = Info.plist;
-				INSTALL_PATH = "$(HOME)/Library/Bundles";
+				INSTALL_PATH = "\"$(USER_LIBRARY_DIR)/Application Support/OpenEmu/Cores\"";
 				OTHER_CFLAGS = "-DHAVE_STDINT_H";
 				PRODUCT_NAME = Gambatte;
+				SKIP_INSTALL = YES;
 				USER_HEADER_SEARCH_PATHS = "";
 				WRAPPER_EXTENSION = oecoreplugin;
 			};
@@ -804,9 +807,10 @@
 					"\"$(SRCROOT)/libgambatte/include\"",
 				);
 				INFOPLIST_FILE = Info.plist;
-				INSTALL_PATH = "$(HOME)/Library/Bundles";
+				INSTALL_PATH = "\"$(USER_LIBRARY_DIR)/Application Support/OpenEmu/Cores\"";
 				OTHER_CFLAGS = "-DHAVE_STDINT_H";
 				PRODUCT_NAME = Gambatte;
+				SKIP_INSTALL = YES;
 				USER_HEADER_SEARCH_PATHS = "";
 				WRAPPER_EXTENSION = oecoreplugin;
 			};
@@ -816,7 +820,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
+				INSTALL_PATH = "\"$(USER_LIBRARY_DIR)/Application Support/OpenEmu/Cores\"";
 				PRODUCT_NAME = Distribution;
+				SKIP_INSTALL = YES;
 			};
 			name = Debug;
 		};
@@ -825,7 +831,9 @@
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				COMBINE_HIDPI_IMAGES = YES;
+				INSTALL_PATH = "\"$(USER_LIBRARY_DIR)/Application Support/OpenEmu/Cores\"";
 				PRODUCT_NAME = Distribution;
+				SKIP_INSTALL = YES;
 			};
 			name = Release;
 		};
@@ -833,7 +841,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
+				INSTALL_PATH = "\"$(USER_LIBRARY_DIR)/Application Support/OpenEmu/Cores\"";
 				PRODUCT_NAME = "Build & Install";
+				SKIP_INSTALL = YES;
 			};
 			name = Debug;
 		};
@@ -841,7 +851,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
+				INSTALL_PATH = "\"$(USER_LIBRARY_DIR)/Application Support/OpenEmu/Cores\"";
 				PRODUCT_NAME = "Build & Install";
+				SKIP_INSTALL = YES;
 			};
 			name = Release;
 		};

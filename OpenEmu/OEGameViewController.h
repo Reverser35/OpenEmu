@@ -27,7 +27,8 @@
 #import <Cocoa/Cocoa.h>
 
 extern NSString *const OEGameVolumeKey;
-extern NSString *const OEGameVideoFilterKey;
+extern NSString *const OEGameDefaultVideoFilterKey;
+extern NSString *const OEGameSystemVideoFilterKeyFormat;
 extern NSString *const OEGameCoresInBackgroundKey;
 extern NSString *const OEDontShowGameTitleInWindowKey;
 extern NSString *const OEAutoSwitchCoreAlertSuppressionKey;
@@ -35,7 +36,6 @@ extern NSString *const OEForceCorePicker;
 extern NSString *const OEGameViewControllerEmulationWillFinishNotification;
 extern NSString *const OEGameViewControllerEmulationDidFinishNotification;
 extern NSString *const OEGameViewControllerROMKey;
-
 
 @class OEDBRom;
 @class OEDBGame;
@@ -113,7 +113,9 @@ extern NSString *const OEGameViewControllerROMKey;
 
 #pragma mark - Controlling Emulation
 - (void)resetGame;
+- (BOOL)shouldTerminateEmulation;
 - (void)terminateEmulation;
+- (IBAction)performClose:(id)sender;
 
 - (IBAction)pauseGame:(id)sender;
 - (IBAction)playGame:(id)sender;
@@ -123,6 +125,7 @@ extern NSString *const OEGameViewControllerROMKey;
 
 #pragma mark - Cheats
 - (IBAction)addCheat:(id)sender;
+- (IBAction)setCheat:(id)sender;
 - (BOOL)cheatSupport;
 - (void)setCheatWithCodeAndType:(NSString *)code setType:(NSString *)type setEnabled:(BOOL)enabled;
 

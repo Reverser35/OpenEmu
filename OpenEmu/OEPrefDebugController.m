@@ -122,7 +122,26 @@
             [allGames enumerateObjectsUsingBlock:
              ^(id obj, NSUInteger idx, BOOL *stop)
              {
-                 [(OEDBGame*)obj setNeedsFullSyncWithArchiveVG];
+                 [(OEDBGame*)obj setNeedsArchiveSync];
+             }];
+            printf("\nDone\n");
+            break;
+        case 4:
+            printf("\nRunning archive sync on all unsynced games\n\n");
+            [allGames enumerateObjectsUsingBlock:
+             ^(id obj, NSUInteger idx, BOOL *stop)
+             {
+                 if([obj lastArchiveSync] == nil)
+                     [(OEDBGame*)obj setNeedsArchiveSync];
+             }];
+            printf("\nDone\n");
+            break;
+        case 5:
+            printf("\nClearing archive sync queue\n\n");
+            [allGames enumerateObjectsUsingBlock:
+             ^(id obj, NSUInteger idx, BOOL *stop)
+             {
+                 [obj setStatus:@(OEDBGameStatusOK)];
              }];
             printf("\nDone\n");
             break;

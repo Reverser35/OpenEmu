@@ -35,7 +35,6 @@
 const NSTimeInterval OEInitialPeriodicDelay = 0.4;      // Initial delay of a periodic events
 const NSTimeInterval OEPeriodicInterval     = 0.075;    // Subsequent interval of periodic events
 
-NSString * const OELightStyleGridViewMenu = @"lightStyleGridViewMenu";
 NSString * const OEUseSpacebarToLaunchGames = @"allowSpacebarToLaunchGames";
 
 @interface OEGridView ()
@@ -71,6 +70,7 @@ NSString * const OEUseSpacebarToLaunchGames = @"allowSpacebarToLaunchGames";
 - (void)OE_setupFieldEditorForCell:(OEGridViewCell *)cell titleLayer:(CATextLayer *)textLayer;
 - (void)OE_cancelFieldEditor;
 
+@property NSMutableString *typeSelectSearchString;
 @end
 
 @implementation OEGridView
@@ -708,7 +708,7 @@ NSString * const OEUseSpacebarToLaunchGames = @"allowSpacebarToLaunchGames";
     if(!NSEqualSizes(_cachedViewSize, visibleRect.size))
     {
         [self OE_cancelFieldEditor];
-        [self performSelector:@selector(OE_calculateCachedValuesAndQueryForDataChanges:) withObject:[NSNumber numberWithBool:NO] afterDelay:0.25];
+        [self OE_calculateCachedValuesAndQueryForDataChanges:NO];
     }
 }
 
@@ -771,12 +771,14 @@ NSString * const OEUseSpacebarToLaunchGames = @"allowSpacebarToLaunchGames";
 
 - (void)OE_layoutGridView
 {
+    [self removeAllToolTips];
     if([_visibleCellByIndex count] == 0) return;
 
     [_visibleCellByIndex enumerateKeysAndObjectsUsingBlock:
-     ^ (NSNumber *key, OEGridViewCell *obj, BOOL *stop)
+     ^ (NSNumber *key, OECoverGridViewCell *obj, BOOL *stop)
      {
          [obj setFrame:[self rectForCellAtIndex:[key unsignedIntegerValue]]];
+         [self addToolTipRect:[obj toolTipRect] owner:obj userData:nil];
      }];
 
     _needsLayoutGridView = NO;
@@ -830,6 +832,11 @@ NSString * const OEUseSpacebarToLaunchGames = @"allowSpacebarToLaunchGames";
 
 - (void)mouseDown:(NSEvent *)theEvent
 {
+    // AppKit posts a control-mouse-down event when the user control-clicks the view and -menuForEvent: returns nil
+    // since a nil return normally means there is no contextual menu.
+    // However, we do show a menu before returning nil from -menuForEvent:, so we need to ignore control-mouse-down events.
+    if([theEvent modifierFlags] & NSControlKeyMask) return;
+    
     const NSPoint pointInView = [self OE_pointInViewFromEvent:theEvent];
     _trackingLayer            = [self OE_gridLayerForPoint:pointInView];
 
@@ -1175,7 +1182,7 @@ NSString * const OEUseSpacebarToLaunchGames = @"allowSpacebarToLaunchGames";
         NSMenu *contextMenu = [[self dataSource] gridView:self menuForItemsAtIndexes:[self selectionIndexes]];
         if(contextMenu)
         {
-            OEMenuStyle     style      = ([[NSUserDefaults standardUserDefaults] boolForKey:OELightStyleGridViewMenu] ? OEMenuStyleLight : OEMenuStyleDark);
+            OEMenuStyle     style      = ([[NSUserDefaults standardUserDefaults] boolForKey:OEMenuOptionsStyleKey] ? OEMenuStyleLight : OEMenuStyleDark);
             OEGridViewCell *itemCell   = [self cellForItemAtIndex:index makeIfNecessary:YES];
 
             NSRect          hitRect             = NSInsetRect([itemCell hitRect], 5, 5);
@@ -1298,7 +1305,10 @@ NSString * const OEUseSpacebarToLaunchGames = @"allowSpacebarToLaunchGames";
 
 - (void)keyDown:(NSEvent *)theEvent
 {
-    if ([theEvent keyCode] == kVK_Delete || [theEvent keyCode] == kVK_ForwardDelete)
+    if([self OE_shouldTypeSelectForEvent:theEvent])
+        [self OE_typeSelect:[theEvent charactersIgnoringModifiers]];
+    
+    else if ([theEvent keyCode] == kVK_Delete || [theEvent keyCode] == kVK_ForwardDelete)
         [NSApp sendAction:@selector(delete:) to:nil from:self];
 
     // check if the pressed key is 'space' or 'return' and send the delegate a gridView:doubleclickedCellForItemAtIndex: message
@@ -1306,7 +1316,79 @@ NSString * const OEUseSpacebarToLaunchGames = @"allowSpacebarToLaunchGames";
             [_delegate gridView:self doubleClickedCellForItemAtIndex:[[self selectionIndexes] firstIndex]];
     else                                                                             [super keyDown:theEvent];
 }
+#pragma mark - Type Select
+- (BOOL)OE_shouldTypeSelectForEvent:(NSEvent*)event
+{
+    if(_delegateHas.shouldTypeSelect)
+        return [[self delegate] gridView:self shouldTypeSelectForEvent:event withCurrentSearchString:_typeSelectSearchString];
+    
+    // use alphanumeric characters for type select by default
+    unichar firstCharacter = [[event charactersIgnoringModifiers] characterAtIndex:0];
+    return [[NSCharacterSet alphanumericCharacterSet] characterIsMember:firstCharacter] || firstCharacter == ' ';
+}
 
+- (NSString*)OE_typeSelectStringForItemAtIndex:(NSUInteger)idx
+{
+    if(_delegateHas.typeSelectString)
+        return [[self delegate] gridView:self typeSelectStringForItemAtIndex:idx];
+    return nil;
+}
+
+- (void)OE_typeSelect:(NSString*)characters
+{
+    if(_typeSelectSearchString == nil)
+        _typeSelectSearchString = [NSMutableString stringWithString:characters];
+    else
+    {
+        [_typeSelectSearchString appendString:characters];
+        [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(OE_stopTypeSelect) object:nil];
+    }
+    
+    // Marching starts at current selection or 0 if nothing is selected yet
+    NSUInteger startIndex = [[self selectionIndexes] firstIndex];
+    if(startIndex == NSNotFound) startIndex = 0;
+    
+    NSUInteger i = startIndex, matchIndex = NSNotFound, lastMatchLength = 0;
+    
+    // Default implemenation limits type select matching to one second so we'll do the same here
+    NSDate *startTime = [NSDate date];
+    while ([startTime timeIntervalSinceNow] > -1.0) {
+        NSString *currentValue = [self OE_typeSelectStringForItemAtIndex:i];
+        if(!currentValue) break;
+        
+        NSUInteger matchLength = [[currentValue commonPrefixWithString:_typeSelectSearchString options:NSCaseInsensitiveSearch|NSDiacriticInsensitiveSearch] length];
+        if(matchLength > lastMatchLength)
+        {
+            lastMatchLength = matchLength;
+            matchIndex = i;
+        }
+        else if(matchLength < lastMatchLength)
+            // current value is worse than the last, assuming that items are sorted alphabetically we can stop here
+            break;
+        
+        i++;
+        
+        if(i == [self numberOfItems])
+            i = 0;
+
+        if(i == startIndex)
+            break;
+    }
+    if(matchIndex != NSNotFound)
+    {
+        [self deselectAll:self];
+        [self selectCellAtIndex:matchIndex];
+        [self scrollRectToVisible:NSIntegralRect(NSInsetRect([self rectForCellAtIndex:matchIndex], 0.0, -_rowSpacing))];
+        _indexOfKeyboardSelection = matchIndex;
+    }
+    
+    [self performSelector:@selector(OE_stopTypeSelect) withObject:nil afterDelay:0.2];
+}
+
+- (void)OE_stopTypeSelect
+{
+    _typeSelectSearchString = nil;
+}
 #pragma mark -
 #pragma mark NSDraggingDestination
 
@@ -1530,6 +1612,8 @@ NSString * const OEUseSpacebarToLaunchGames = @"allowSpacebarToLaunchGames";
         _delegateHas.validateDrop                    = [_delegate respondsToSelector:@selector(gridView:validateDrop:)];
         _delegateHas.draggingUpdated                 = [_delegate respondsToSelector:@selector(gridView:draggingUpdated:)];
         _delegateHas.acceptDrop                      = [_delegate respondsToSelector:@selector(gridView:acceptDrop:)];
+        _delegateHas.typeSelectString                = [_delegate respondsToSelector:@selector(gridView:shouldTypeSelectForEvent:withCurrentSearchString:)];
+        _delegateHas.shouldTypeSelect                = [_delegate respondsToSelector:@selector(gridView:typeSelectStringForItemAtIndex:)];
     }
 }
 

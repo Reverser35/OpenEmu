@@ -1,7 +1,6 @@
 /*
  Copyright (c) 2009, OpenEmu Team
 
-
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
      * Redistributions of source code must retain the above copyright
@@ -33,23 +32,31 @@
 
 @class OEHIDEvent;
 
-#define kOEHIDElementIsTriggerKey "OEHIDElementIsTrigger"
+#define kOEHIDElementIsTriggerKey     "OEHIDElementIsTrigger"
+#define kOEHIDElementHatSwitchTypeKey "OEHIDElementHatSwitchType"
 
 @class IOBluetoothDevice;
+@class OEControllerDescription;
+@class OEDeviceDescription;
+
 @interface OEDeviceHandler : NSObject <NSCopying>
 
-// Returns aString if aString is a parsable identifier or a known identifier, returns nil otherwise.
-+ (NSString *)standardDeviceIdentifierForDeviceIdentifier:(NSString *)aString;
+- (void)setUpControllerDescription:(OEControllerDescription *)description usingRepresentation:(NSDictionary *)controlRepresentations;
+
+// Uniquely identifies a controller.
+// WARNING: This is used by OEHIDEvents, do NOT toy with it.
+@property(readonly) NSUInteger deviceIdentifier;
 
 @property(readonly) NSUInteger deviceNumber;
 
-@property(readonly) NSString *deviceIdentifier;
+@property(readonly) OEControllerDescription *controllerDescription;
+@property(readonly) OEDeviceDescription *deviceDescription;
 
 @property(readonly) NSString *serialNumber;
 @property(readonly) NSString *manufacturer;
 @property(readonly) NSString *product;
-@property(readonly) NSNumber *vendorID;
-@property(readonly) NSNumber *productID;
+@property(readonly) NSUInteger vendorID;
+@property(readonly) NSUInteger productID;
 @property(readonly) NSNumber *locationID;
 
 - (BOOL)connect;
@@ -60,3 +67,5 @@
 - (BOOL)isKeyboardDevice;
 
 @end
+
+extern NSString *const OEDeviceHandlerDidReceiveLowBatteryWarningNotification;

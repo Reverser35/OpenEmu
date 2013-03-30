@@ -51,6 +51,8 @@
 #import "OEDBCollection.h"
 #import "OEDBSaveState.h"
 
+#import "ArchiveVG.h"
+
 #import "OECenteredTextFieldCell.h"
 #import "OELibraryDatabase.h"
 
@@ -90,7 +92,7 @@ static NSArray *OE_defaultSortDescriptors;
     
     IBOutlet OEHorizontalSplitView *flowlistViewContainer; // cover flow and simple list container
     IBOutlet IKImageFlowView *coverFlowView;
-    IBOutlet NSTableView *listView;
+    IBOutlet OETableView *listView;
     IBOutlet OEBlankSlateView *blankSlateView;
     
     NSDate *_listViewSelectionChangeDate;
@@ -108,7 +110,6 @@ static NSArray *OE_defaultSortDescriptors;
 
 @implementation OECollectionViewController
 {
-    BOOL _stateRewriteRequired;
     int _selectedViewTag;
 }
 @synthesize libraryController, gamesController;
@@ -166,7 +167,7 @@ static NSArray *OE_defaultSortDescriptors;
     NSManagedObjectContext *context = [[OELibraryDatabase defaultDatabase] managedObjectContext];
     //[gamesController bind:@"managedObjectContext" toObject:context withKeyPath:@"" options:nil];
 
-    OE_defaultSortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"name" ascending:YES selector:@selector(caseInsensitiveCompare:)]];
+    OE_defaultSortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"displayName" ascending:YES selector:@selector(caseInsensitiveCompare:)]];
     
     [gamesController setManagedObjectContext:context];
     [gamesController setEntityName:@"Game"];
@@ -249,8 +250,7 @@ static NSArray *OE_defaultSortDescriptors;
     [super setRepresentedObject:representedObject];
 
     [[listView tableColumnWithIdentifier:@"listViewConsoleName"] setHidden:![representedObject shouldShowSystemColumnInListView]];
-    
-    _stateRewriteRequired = YES;
+
     [self OE_reloadData];
 }
 
@@ -261,19 +261,19 @@ static NSArray *OE_defaultSortDescriptors;
 
 - (id)encodeCurrentState
 {
-    if(!_stateRewriteRequired || ![self libraryController] || _selectedViewTag==OEBlankSlateTag)
+    if(![self libraryController] || _selectedViewTag==OEBlankSlateTag)
         return nil;
     
     NSMutableData    *data  = [NSMutableData data];
     NSKeyedArchiver  *coder = [[NSKeyedArchiver alloc] initForWritingWithMutableData:data];
     NSSlider *sizeSlider    = [[self libraryController] toolbarSlider];
-    NSString *searchString  = [[[self libraryController] toolbarSearchField] stringValue];
     
     [coder encodeInt:_selectedViewTag forKey:@"selectedView"];
     [coder encodeFloat:[sizeSlider floatValue] forKey:@"sliderValue"];
-    [coder encodeObject:searchString forKey:@"searchString"];
     [coder encodeObject:[self selectedIndexes] forKey:@"selectionIndexes"];
+    if([listView headerState]) [coder encodeObject:[listView headerState] forKey:@"listViewHeaderState"];
     if([listView sortDescriptors]) [coder encodeObject:[listView sortDescriptors] forKey:@"listViewSortDescriptors"];
+    if(_selectedViewTag == OEGridViewTag) [coder encodeRect:[[gridView enclosingScrollView] documentVisibleRect] forKey:@"gridViewVisibleRect"];
     
     [coder finishEncoding];
     
@@ -284,23 +284,25 @@ static NSArray *OE_defaultSortDescriptors;
 {
     if([self libraryController] == nil) return;
     
-    int selectedViewTag;
-    float sliderValue;
-    NSString   *searchString;
-    NSIndexSet *selectionIndexes;
-    NSArray    *listViewSortDescriptors = nil;
+    int           selectedViewTag;
+    float         sliderValue;
+    NSIndexSet   *selectionIndexes;
+    NSDictionary *listViewHeaderState = nil;
+    NSArray      *listViewSortDescriptors = nil;
+    NSRect        gridViewVisibleRect;
     
-    NSSlider    *sizeSlider     = [[self libraryController] toolbarSlider];
-    NSTextField *searchField    = [[self libraryController] toolbarSearchField];
+    NSSlider     *sizeSlider     = [[self libraryController] toolbarSlider];
+    NSTextField  *searchField    = [[self libraryController] toolbarSearchField];
 
     NSKeyedUnarchiver *coder = state ? [[NSKeyedUnarchiver alloc] initForReadingWithData:state] : nil;
     if(coder)
     {
         selectedViewTag         = [coder decodeIntForKey:@"selectedView"];
         sliderValue             = [coder decodeFloatForKey:@"sliderValue"];
-        searchString            = [coder decodeObjectForKey:@"searchString"];
         selectionIndexes        = [coder decodeObjectForKey:@"selectionIndexes"];
+        listViewHeaderState     = [coder decodeObjectForKey:@"listViewHeaderState"];
         listViewSortDescriptors = [coder decodeObjectForKey:@"listViewSortDescriptors"];
+        gridViewVisibleRect     = [coder decodeRectForKey:@"gridViewVisibleRect"];
         
         [coder finishDecoding];
                 
@@ -318,29 +320,30 @@ static NSArray *OE_defaultSortDescriptors;
         
         selectedViewTag  = [userDefaults integerForKey:OELastCollectionViewKey];
         sliderValue      = [userDefaults floatForKey:OELastGridSizeKey];
-        searchString     = @"";
         selectionIndexes = [NSIndexSet indexSet];
     }
-        
-    [self OE_setupToolbarStatesForViewTag:selectedViewTag];
+
+    if(listViewSortDescriptors == nil)
+        listViewSortDescriptors = OE_defaultSortDescriptors;
+
+    [gamesController setSelectionIndexes:selectionIndexes];
+    [listView setSortDescriptors:listViewSortDescriptors];
+    [listView setHeaderState:listViewHeaderState];
+    [self OE_switchToView:selectedViewTag];
     [sizeSlider setFloatValue:sliderValue];
     [self changeGridSize:sizeSlider];
-
-    [searchField setStringValue:searchString];
+    [searchField setStringValue:@""];
 	[self search:searchField];
-    [listView setSortDescriptors:listViewSortDescriptors];
 
-    if(selectedViewTag == OEFlowViewTag || selectedViewTag == OEListViewTag)
+    if(selectedViewTag == OEGridViewTag)
     {
-        [[self gamesController] setSortDescriptors:(listViewSortDescriptors ? : OE_defaultSortDescriptors)];
-        [listView reloadData];
+        [gridView setSelectionIndexes:selectionIndexes];
+        [gridView scrollRectToVisible:gridViewVisibleRect];
     }
 
     [self OE_updateBlankSlate];
-    
-    _stateRewriteRequired = NO;
-    // TODO: restore selection using selectionIndexes
 }
+
 #pragma mark -
 - (NSArray *)selectedGames
 {
@@ -356,16 +359,19 @@ static NSArray *OE_defaultSortDescriptors;
 #pragma mark View Selection
 - (IBAction)switchToGridView:(id)sender
 {
+    [sender setState:NSOnState];
     [self OE_switchToView:OEGridViewTag];
 }
 
 - (IBAction)switchToFlowView:(id)sender
 {
+    [sender setState:NSOnState];
     [self OE_switchToView:OEFlowViewTag];
 }
 
 - (IBAction)switchToListView:(id)sender
 {
+    [sender setState:NSOnState];
     [self OE_switchToView:OEListViewTag];
 }
 
@@ -395,8 +401,7 @@ static NSArray *OE_defaultSortDescriptors;
 
     [self OE_setupToolbarStatesForViewTag:tag];
     [self OE_showView:tag];
-    
-    _stateRewriteRequired = (tag != OEBlankSlateTag);
+
     _selectedViewTag = tag;
 }
 
@@ -536,8 +541,7 @@ static NSArray *OE_defaultSortDescriptors;
     [listView reloadData];
     [coverFlowView performSelectorOnMainThread:@selector(reloadData) withObject:nil waitUntilDone:NO];
     [gridView reloadData];
-    
-    _stateRewriteRequired = YES;
+
 }
 
 - (IBAction)changeGridSize:(id)sender
@@ -548,7 +552,6 @@ static NSArray *OE_defaultSortDescriptors;
     [self setNeedsReloadVisible];
     
     [[NSUserDefaults standardUserDefaults] setValue:[NSNumber numberWithFloat:zoomValue] forKey:OELastGridSizeKey];
-    _stateRewriteRequired = YES;
 }
 
 #pragma mark -
@@ -556,7 +559,6 @@ static NSArray *OE_defaultSortDescriptors;
 - (void)selectionChangedInGridView:(OEGridView *)view
 {
     [gamesController setSelectionIndexes:[view selectionIndexes]];
-    _stateRewriteRequired = YES;
     
     if([[NSUserDefaults standardUserDefaults] boolForKey:OEDebugCollectionView] && [[[self gamesController] selectedObjects] count])
     {
@@ -581,7 +583,9 @@ static NSArray *OE_defaultSortDescriptors;
     
     NSArray *files = [pboard propertyListForType:NSFilenamesPboardType];
     OEROMImporter *romImporter = [[[self libraryController] database] importer];
-    [romImporter importItemsAtPaths:files];
+    
+    OEDBCollection *collection = [[self representedObject] isKindOfClass:[OEDBCollection class]] ? [self representedObject] : nil;
+    [romImporter importItemsAtPaths:files intoCollectionWithID:[[collection objectID] URIRepresentation]];
     
     return YES;
 }
@@ -649,8 +653,9 @@ static NSArray *OE_defaultSortDescriptors;
     
     NSArray *files = [pboard propertyListForType:NSFilenamesPboardType];
     OEROMImporter *romImporter = [[[self libraryController] database] importer];
-    [romImporter importItemsAtPaths:files];
-    
+    OEDBCollection *collection = [[self representedObject] isKindOfClass:[OEDBCollection class]] ? [self representedObject] : nil;
+    [romImporter importItemsAtPaths:files intoCollectionWithID:[[collection objectID] URIRepresentation]];
+
     return YES;
 }
 #pragma mark -
@@ -673,8 +678,25 @@ static NSArray *OE_defaultSortDescriptors;
     [object setGridRating:[item rating]];
     [object setGridTitle:[item title]];
     [object setGridImage:[item image]];
+    
+    if([object isKindOfClass:[NSManagedObject class]])
+    {
+        [[(NSManagedObject*)object managedObjectContext] save:nil];
+    }
+}
+#pragma mark - GridView Type Select
+- (BOOL)gridView:(OEGridView *)gridView shouldTypeSelectForEvent:(NSEvent *)event withCurrentSearchString:(NSString *)searchString
+{
+    unichar firstCharacter = [[event charactersIgnoringModifiers] characterAtIndex:0];
+    if(firstCharacter == ' ')
+        return searchString!=nil;
+    return [[NSCharacterSet alphanumericCharacterSet] characterIsMember:firstCharacter];
 }
 
+- (NSString*)gridView:(OEGridView *)gridView typeSelectStringForItemAtIndex:(NSUInteger)idx;
+{
+    return [[[[self gamesController] arrangedObjects] objectAtIndex:idx] gridTitle];
+}
 #pragma mark -
 #pragma mark Context Menu
 - (BOOL)validateMenuItem:(NSMenuItem *)menuItem
@@ -691,71 +713,93 @@ static NSArray *OE_defaultSortDescriptors;
     if([indexes count] == 1)
     {
         NSInteger index = [indexes lastIndex];
-        [menu addItemWithTitle:@"Play Game" action:@selector(startGame:) keyEquivalent:@""];
+        [menu addItemWithTitle:NSLocalizedString(@"Play Game", @"") action:@selector(startGame:) keyEquivalent:@""];
         OEDBGame  *game = [[gamesController arrangedObjects] objectAtIndex:index];
         
         // Create Save Game Menu
-        menuItem = [[NSMenuItem alloc] initWithTitle:@"Play Save Games" action:NULL keyEquivalent:@""];
+        menuItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Play Save Games", @"") action:NULL keyEquivalent:@""];
         [menuItem setSubmenu:[self OE_saveStateMenuForGame:game]];
         [menu addItem:menuItem];
         
         [menu addItem:[NSMenuItem separatorItem]];
         
         // Create Rating Item
-        menuItem = [[NSMenuItem alloc] initWithTitle:@"Rating" action:NULL keyEquivalent:@""];
+        menuItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Rating", @"") action:NULL keyEquivalent:@""];
         [menuItem setSubmenu:[self OE_ratingMenuForGames:games]];
         [menu addItem:menuItem];    
-        [menu addItemWithTitle:@"Show In Finder" action:@selector(showSelectedGamesInFinder:) keyEquivalent:@""];
+        [menu addItemWithTitle:NSLocalizedString(@"Show In Finder", @"") action:@selector(showSelectedGamesInFinder:) keyEquivalent:@""];
         [menu addItem:[NSMenuItem separatorItem]];
 
         // Temporarily disable Get Game Info from Archive.vg per issue #322. This should be eventually enabled in a later version.
         // See the corresponding menu item a few lines below.
-//        [menu addItemWithTitle:@"Get Game Info From Archive.vg" action:@selector(getGameInfoFromArchive:) keyEquivalent:@""];
 
-        [menu addItemWithTitle:@"Match To Archive.vg URL…" action:@selector(matchToArchive:) keyEquivalent:@""];
-        [menu addItemWithTitle:@"Get Cover Art From Archive.vg" action:@selector(getCoverFromArchive:) keyEquivalent:@""];
-//        [menu addItem:[NSMenuItem separatorItem]];
-        [menu addItemWithTitle:@"Add Cover Art From File…" action:@selector(addCoverArtFromFile:) keyEquivalent:@""];
-//        [menu addItemWithTitle:@"Add Save File To Game…" action:@selector(addSaveStateFromFile:) keyEquivalent:@""];
+        menuItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Show Game At Archive.vg", @"")
+                                              action:@selector(showGamesAtArchive:)
+                                       keyEquivalent:@""];
+        if([[game archiveID] integerValue] == 0)
+            [menuItem setEnabled:NO];
+        [menu addItem:menuItem];
+        
+        [menu addItemWithTitle:NSLocalizedString(@"Match To Archive.vg URL…", @"") action:@selector(matchToArchive:) keyEquivalent:@""];
+        [menu addItemWithTitle:NSLocalizedString(@"Get Cover Art From Archive.vg", @"") action:@selector(getCoverFromArchive:) keyEquivalent:@""];
+        [menu addItemWithTitle:NSLocalizedString(@"Add Cover Art From File…", @"") action:@selector(addCoverArtFromFile:) keyEquivalent:@""];
+        [menu addItemWithTitle:NSLocalizedString(@"Consolidate Files…", @"") action:@selector(consolidateFiles:) keyEquivalent:@""];
+
+        //[menu addItemWithTitle:@"Add Save File To Game…" action:@selector(addSaveStateFromFile:) keyEquivalent:@""];
         [menu addItem:[NSMenuItem separatorItem]];
         // Create Add to collection menu
-        NSMenuItem *collectionMenuItem = [[NSMenuItem alloc] initWithTitle:@"Add To Collection" action:NULL keyEquivalent:@""];
+        NSMenuItem *collectionMenuItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Add To Collection", @"") action:NULL keyEquivalent:@""];
         [collectionMenuItem setSubmenu:[self OE_collectionsMenuForGames:games]];
         [menu addItem:collectionMenuItem];
         [menu addItem:[NSMenuItem separatorItem]];
-        [menu addItemWithTitle:@"Rename Game" action:@selector(renameSelectedGame:) keyEquivalent:@""];
-        [menu addItemWithTitle:@"Delete Game" action:@selector(deleteSelectedGames:) keyEquivalent:@""];        
+        [menu addItemWithTitle:NSLocalizedString(@"Rename Game", @"") action:@selector(renameSelectedGame:) keyEquivalent:@""];
+        [menu addItemWithTitle:NSLocalizedString(@"Delete Game", @"") action:@selector(deleteSelectedGames:) keyEquivalent:@""];
     }
     else
     {
         if([[NSUserDefaults standardUserDefaults] boolForKey:OEForcePopoutGameWindowKey])
         {
-            [menu addItemWithTitle:@"Play Games (Caution)" action:@selector(startGame:) keyEquivalent:@""];
+            [menu addItemWithTitle:NSLocalizedString(@"Play Games (Caution)", @"") action:@selector(startGame:) keyEquivalent:@""];
         }
         
         // Create Rating Item
-        menuItem = [[NSMenuItem alloc] initWithTitle:@"Rating" action:NULL keyEquivalent:@""];
+        menuItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Rating", @"") action:NULL keyEquivalent:@""];
         [menuItem setSubmenu:[self OE_ratingMenuForGames:games]];
         [menu addItem:menuItem];    
-        [menu addItemWithTitle:@"Show In Finder" action:@selector(showSelectedGamesInFinder:) keyEquivalent:@""];
-        
+        [menu addItemWithTitle:NSLocalizedString(@"Show In Finder", @"") action:@selector(showSelectedGamesInFinder:) keyEquivalent:@""];
         [menu addItem:[NSMenuItem separatorItem]];
 
         // Temporarily disable Get Game Info from Archive.vg per issue #322. This should be eventually enabled in a later version.
         // See the corresponding menu item a few lines above.
-//        [menu addItemWithTitle:@"Get Game Info From Archive.vg" action:@selector(getGameInfoFromArchive:) keyEquivalent:@""];
 
-        [menu addItemWithTitle:@"Get Cover Art From Archive.vg" action:@selector(getCoverFromArchive:) keyEquivalent:@""];
-        [menu addItemWithTitle:@"Add Cover Art From File…" action:@selector(addCoverArtFromFile:) keyEquivalent:@""];
+        // Check if any selected games have an archiveID attached to them, if so enable menu item
+        menuItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Show Games At Archive.vg", @"")
+                                              action:@selector(showGamesAtArchive:)
+                                       keyEquivalent:@""];
+        [menuItem setEnabled:NO];
+        for(OEDBGame *game in games)
+        {
+            if([[game archiveID] integerValue] != 0)
+            {
+                [menuItem setEnabled:YES];
+                break;
+            }
+        }
+        [menu addItem:menuItem];
+
+
+        [menu addItemWithTitle:NSLocalizedString(@"Get Cover Art From Archive.vg", @"") action:@selector(getCoverFromArchive:) keyEquivalent:@""];
+        [menu addItemWithTitle:NSLocalizedString(@"Add Cover Art From File…", @"") action:@selector(addCoverArtFromFile:) keyEquivalent:@""];
+        [menu addItemWithTitle:NSLocalizedString(@"Consolidate Files…", @"") action:@selector(consolidateFiles:) keyEquivalent:@""];
 
         [menu addItem:[NSMenuItem separatorItem]];
         // Create Add to collection menu
-        NSMenuItem *collectionMenuItem = [[NSMenuItem alloc] initWithTitle:@"Add To Collection" action:NULL keyEquivalent:@""];
+        NSMenuItem *collectionMenuItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Add To Collection", @"") action:NULL keyEquivalent:@""];
         [collectionMenuItem setSubmenu:[self OE_collectionsMenuForGames:games]];
         [menu addItem:collectionMenuItem];
         
         [menu addItem:[NSMenuItem separatorItem]];
-        [menu addItemWithTitle:@"Delete Games" action:@selector(deleteSelectedGames:) keyEquivalent:@""];        
+        [menu addItemWithTitle:NSLocalizedString(@"Delete Games", @"") action:@selector(deleteSelectedGames:) keyEquivalent:@""];
     }
     
     [menu setAutoenablesItems:YES];
@@ -795,7 +839,7 @@ static NSArray *OE_defaultSortDescriptors;
     
     if([[saveGamesMenu itemArray] count] == 0)
     {
-        [saveGamesMenu addItemWithTitle:@"No Save States available" action:NULL keyEquivalent:@""];
+        [saveGamesMenu addItemWithTitle:NSLocalizedString(@"No Save States available", @"") action:NULL keyEquivalent:@""];
         [(NSMenuItem*)[[saveGamesMenu itemArray] lastObject] setEnabled:NO];
     }
     
@@ -846,7 +890,9 @@ static NSArray *OE_defaultSortDescriptors;
     NSMenu  *collectionMenu = [[NSMenu alloc] init];
     NSArray *collections = [[[self libraryController] database] collections];
     
-    [collectionMenu addItemWithTitle:@"New Collection from Selection" action:@selector(makeNewCollectionWithSelectedGames:) keyEquivalent:@""];
+    [collectionMenu addItemWithTitle:NSLocalizedString(@"New Collection from Selection", @"")
+                              action:@selector(makeNewCollectionWithSelectedGames:)
+                       keyEquivalent:@""];
     
     for(id collection in collections)
     {
@@ -999,12 +1045,19 @@ static NSArray *OE_defaultSortDescriptors;
 - (void)matchToArchive:(id)sender
 {
     OEHUDAlert *alert = [[OEHUDAlert alloc] init];
-    [alert setInputLabelText:@"URL:"];
+    [alert setInputLabelText:NSLocalizedString(@"URL:", @"")];
     [alert setShowsInputField:YES];
+    [alert setDefaultButtonTitle:NSLocalizedString(@"OK", @"")];
     [alert setStringValue:@""];
-    [alert setDefaultButtonTitle:@"OK"];
-    [alert setAlternateButtonTitle:@"Cancel"];
-    [alert setHeight:112.0];
+    [alert setAlternateButtonTitle:NSLocalizedString(@"Cancel", @"")];
+    
+    NSArray *selectedGames = [self selectedGames];
+    if([selectedGames count] == 1)
+    {
+        NSURL *url = [ArchiveVG browserURLForArchiveID:[[selectedGames lastObject] archiveID]];
+        if(url)
+            [alert setStringValue:[url absoluteString]];
+    }
     
     if ([alert runModal] == NSOKButton)
     {
@@ -1012,35 +1065,32 @@ static NSArray *OE_defaultSortDescriptors;
         if (![stringURL length])
             return;
         
-        FIXME(@"Need better error checking");
-        NSURL *url = [NSURL URLWithString:stringURL];
-        NSNumber *archiveID = @([[url lastPathComponent] integerValue]);
-        
-        NSArray *selectedGames = [self selectedGames];
-        [selectedGames enumerateObjectsUsingBlock:^(OEDBGame *obj, NSUInteger idx, BOOL *stop) {
-            [obj setArchiveID:archiveID];
-            [obj setNeedsCoverSyncWithArchiveVG];
-        }];
+        NSURL    *url = [NSURL URLWithString:stringURL];
+        NSNumber *archiveID = [ArchiveVG archiveIDFromBrowserURL:url];
+        if(archiveID != nil && [archiveID intValue]  != 0)
+        {
+            [selectedGames enumerateObjectsUsingBlock:^(OEDBGame *obj, NSUInteger idx, BOOL *stop) {
+                [obj setArchiveID:archiveID];
+                [obj setNeedsArchiveSync];
+            }];
+        }
     }
     
 }
 
-- (void)getGameInfoFromArchive:(id)sender
+- (IBAction)showGamesAtArchive:(id)sender
 {
     NSArray *selectedGames = [self selectedGames];
-    [selectedGames enumerateObjectsUsingBlock:^(OEDBGame *obj, NSUInteger idx, BOOL *stop) {
-        [obj setNeedsInfoSyncWithArchiveVG];
-    }];
-    
-    [self reloadDataIndexes:[self selectedIndexes]];
+    for(OEDBGame *game in selectedGames)
+    {
+        NSURL *url = [ArchiveVG browserURLForArchiveID:[game archiveID]];
+        if(url != nil) [[NSWorkspace sharedWorkspace] openURL:url];
+    }
 }
 
 - (void)getCoverFromArchive:(id)sender
 {
-    NSArray *selectedGames = [self selectedGames];
-    [selectedGames enumerateObjectsUsingBlock:^(OEDBGame *obj, NSUInteger idx, BOOL *stop) {
-        [obj setNeedsCoverSyncWithArchiveVG];
-    }];
+    [[self selectedGames] makeObjectsPerformSelector:@selector(setNeedsArchiveSync)];
 }
 
 - (void)addCoverArtFromFile:(id)sender
@@ -1049,19 +1099,14 @@ static NSArray *OE_defaultSortDescriptors;
     [openPanel setAllowsMultipleSelection:NO];
     [openPanel setCanChooseDirectories:NO];
     [openPanel setCanChooseFiles:YES];
+
     NSArray *imageTypes = [NSImage imageFileTypes];
     [openPanel setAllowedFileTypes:imageTypes];
     
     if([openPanel runModal] != NSFileHandlingPanelOKButton)
         return;
-    
-    NSURL   *imageURL       = [openPanel URL];
-    NSArray *selectedGames  = [self selectedGames];
-    
-    [selectedGames enumerateObjectsUsingBlock:^(OEDBGame *obj, NSUInteger idx, BOOL *stop) {
-        [obj setBoxImageByURL:imageURL];
-    }];
-    
+
+    [[self selectedGames] makeObjectsPerformSelector:@selector(setBoxImageByURL:) withObject:[openPanel URL]];
     [self reloadDataIndexes:[self selectedIndexes]];
 }
 
@@ -1069,15 +1114,88 @@ static NSArray *OE_defaultSortDescriptors;
 {
     NSLog(@"addCoverArtFromFile: Not implemented yet.");
 }
+
+- (void)consolidateFiles:(id)sender
+{
+    NSArray *games = [self selectedGames];
+    if([games count] == 0) return;
+
+    OEHUDAlert  *alert = [[OEHUDAlert alloc] init];
+    [alert setHeadlineText:@""];
+    [alert setMessageText:NSLocalizedString(@"Consolidating will copy all of the selected games into the OpenEmu Library folder.\n\nThis cannot be undone.", @"")];
+    [alert setDefaultButtonTitle:NSLocalizedString(@"Consolidate", @"")];
+    [alert setAlternateButtonTitle:NSLocalizedString(@"Cancel", @"")];
+    if([alert runModal] != NSAlertDefaultReturn) return;
+    
+    alert = [[OEHUDAlert alloc] init];
+    [alert setShowsProgressbar:YES];
+    [alert setProgress:0.0];
+    [alert setHeadlineText:NSLocalizedString(@"Copying Game Files…", @"")];
+    [alert setTitle:NSLocalizedString(@"", @"")];
+    [alert setShowsProgressbar:YES];
+    [alert setDefaultButtonTitle:nil];
+    [alert setMessageText:nil];
+    
+    __block NSInteger alertResult = -1;
+    dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC));
+    dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+    dispatch_after(popTime, queue, ^{
+        for (NSUInteger i=0; i<[games count]; i++) {
+            if(alertResult != -1) break;
+            
+            OEDBGame *aGame = [games objectAtIndex:i];
+            NSSet *roms = [aGame roms];
+            for(OEDBRom *rom in roms)
+            {
+                if(alertResult != -1) break;
+                
+                NSURL *url = [rom URL];
+                if([url checkResourceIsReachableAndReturnError:nil] && ![url isSubpathOfURL:[[rom libraryDatabase] romsFolderURL]])
+                {
+                    BOOL romFileLocked = NO;
+                    if([[[[NSFileManager defaultManager] attributesOfItemAtPath:[url path] error:nil] objectForKey:NSFileImmutable] boolValue])
+                    {
+                        romFileLocked = YES;
+                        [[NSFileManager defaultManager] setAttributes:@{ NSFileImmutable: @(FALSE) } ofItemAtPath:[url path] error:nil];
+                    }
+
+                    NSString *fullName  = [url lastPathComponent];
+                    NSString *extension = [fullName pathExtension];
+                    NSString *baseName  = [fullName stringByDeletingPathExtension];
+                    
+                    NSURL *unsortedFolder = [[rom libraryDatabase] romsFolderURLForSystem:[aGame system]];
+                    NSURL *romURL         = [unsortedFolder URLByAppendingPathComponent:fullName];
+                    romURL = [romURL uniqueURLUsingBlock:^NSURL *(NSInteger triesCount) {
+                        NSString *newName = [NSString stringWithFormat:@"%@ %ld.%@", baseName, triesCount, extension];
+                        return [unsortedFolder URLByAppendingPathComponent:newName];
+                    }];
+                    
+                    if([[NSFileManager defaultManager] copyItemAtURL:url toURL:romURL error:nil] && (alertResult == -1))
+                        [rom setURL:romURL];
+                    
+                    if(romFileLocked)
+                        [[NSFileManager defaultManager] setAttributes:@{ NSFileImmutable: @(YES) } ofItemAtPath:[url path] error:nil];
+                }
+            }
+            [[aGame libraryDatabase] save:nil];
+            
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [alert setProgress:(float)(i+1)/[games count]];
+            });
+        }
+        [alert closeWithResult:NSAlertDefaultReturn];
+    });
+    [alert setDefaultButtonTitle:@"Stop"];
+    alertResult = [alert runModal];
+}
 #pragma mark -
 #pragma mark NSTableView DataSource
+
 - (NSInteger)numberOfRowsInTableView:(NSTableView *)aTableView
 {
-    if( aTableView == listView )
-    {
+    if(aTableView == listView)
         return [[gamesController arrangedObjects] count];
-    }
-    
+
     return 0;
 }
 
@@ -1113,6 +1231,10 @@ static NSArray *OE_defaultSortDescriptors;
             
             [obj setListViewTitle:anObject];
         }
+        else return;
+        
+        if([obj isKindOfClass:[NSManagedObject class]])
+            [[(NSManagedObject*)obj managedObjectContext] save:nil];
     }
 }
 
@@ -1149,8 +1271,7 @@ static NSArray *OE_defaultSortDescriptors;
         [coverFlowView setSelectedIndex:selectedRow];
     }
     else [coverFlowView reloadData];
-    
-    _stateRewriteRequired = YES;
+
 }
 
 #pragma mark -
@@ -1163,8 +1284,9 @@ static NSArray *OE_defaultSortDescriptors;
 
     NSArray *files = [pboard propertyListForType:NSFilenamesPboardType];
     OEROMImporter *romImporter = [[[self libraryController] database] importer];
-    [romImporter importItemsAtPaths:files];
-
+    OEDBCollection *collection = [[self representedObject] isKindOfClass:[OEDBCollection class]] ? [self representedObject] : nil;
+    [romImporter importItemsAtPaths:files intoCollectionWithID:[[collection objectID] URIRepresentation]];
+    
     return YES;
 }
 
@@ -1266,6 +1388,16 @@ static NSArray *OE_defaultSortDescriptors;
     return NO;
 }
 
+#pragma mark - NSTableView Type Select
+- (NSString*)tableView:(NSTableView *)tableView typeSelectStringForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row
+{
+    if([[tableColumn identifier] isEqualToString:@"listViewTitle"])
+    {
+        return [self tableView:tableView objectValueForTableColumn:tableColumn row:row];
+    }
+    return @"";
+}
+
 #pragma mark -
 #pragma mark NSTableView Interaction
 - (void)tableViewWasDoubleClicked:(id)sender{
@@ -1297,7 +1429,6 @@ static NSArray *OE_defaultSortDescriptors;
 {
     return [[gamesController arrangedObjects] objectAtIndex:index];
 }
-
 
 #pragma mark -
 #pragma mark ImageFlow Delegates

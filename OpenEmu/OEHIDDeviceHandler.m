@@ -1,7 +1,6 @@
 /*
  Copyright (c) 2012, OpenEmu Team
 
-
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
      * Redistributions of source code must retain the above copyright
@@ -27,15 +26,14 @@
 
 #import "OEHIDDeviceHandler.h"
 #import "NSApplication+OEHIDAdditions.h"
+#import "OEControllerDescription.h"
+#import "OEDeviceDescription.h"
+#import "OEControlDescription.h"
 #import "OEHIDEvent.h"
 #import "OEDeviceManager.h"
 
 @interface OEHIDEvent ()
-- (BOOL)OE_setupEventWithDeviceHandler:(OEHIDDeviceHandler *)aDeviceHandler value:(IOHIDValueRef)aValue;
-@end
-
-@interface OEDeviceHandler ()
-- (void)OE_setupDeviceIdentifier;
++ (instancetype)OE_eventWithElement:(IOHIDElementRef)element value:(NSInteger)value;
 @end
 
 @interface OEDeviceManager ()
@@ -44,7 +42,7 @@
 
 @interface OEHIDDeviceHandler ()
 {
-    NSMutableDictionary *_reusableEventMap;
+    NSMutableDictionary *_latestEvents;
 
 	//force feedback support
 	FFDeviceObjectReference _ffDevice;
@@ -73,40 +71,37 @@
 
     if((self = [super init]))
     {
-        _reusableEventMap = [[NSMutableDictionary alloc] initWithCapacity:10];
+        _latestEvents = [[NSMutableDictionary alloc] initWithCapacity:10];
         _device = (void *)CFRetain(aDevice);
         _deadZone = 0.2;
 
         if(![self isKeyboardDevice])
         {
-            [self OE_setupDeviceIdentifier];
-            
-            NSArray *elements = (__bridge_transfer NSArray *)IOHIDDeviceCopyMatchingElements(_device, (__bridge CFDictionaryRef)@{ @kIOHIDElementUsagePageKey : @(kHIDPage_GenericDesktop) }, 0);
-
             NSLog(@"Device: %@", self);
+            
+            // Set the device's hat switch and trigger elements so the event creation works properly.
+            OEControllerDescription *controller = [self controllerDescription];
+            NSMutableArray *genericDesktopElements = [(__bridge_transfer NSArray *)IOHIDDeviceCopyMatchingElements(_device, (__bridge CFDictionaryRef)@{ @kIOHIDElementUsagePageKey : @(kHIDPage_GenericDesktop) }, 0) mutableCopy];
 
-            NSMutableArray *posNegElements = [NSMutableArray array];
-            NSMutableArray *posElements    = [NSMutableArray array];
-
-            for(id element in elements)
+            for(id e in genericDesktopElements)
             {
-                IOHIDElementRef elem  = (__bridge IOHIDElementRef)element;
-                uint32_t        usage = IOHIDElementGetUsage(elem);
+                IOHIDElementRef elem = (__bridge IOHIDElementRef)e;
 
-                if(usage < kHIDUsage_GD_X || usage > kHIDUsage_GD_Rz) continue;
-
-                CFIndex minimum = IOHIDElementGetLogicalMin(elem);
-                CFIndex maximum = IOHIDElementGetLogicalMax(elem);
-
-                if(minimum == 0) [posElements addObject:element];
-                else if(minimum < 0 && maximum > 0) [posNegElements addObject:element];
-            }
-
-            if([posNegElements count] != 0 && [posElements count] != 0)
-                for(id element in posElements)
+                // Note that if the element represents an axis, the event created with OE_eventWithElement:value: is necessarily
+                // going to be a Axis event though even though it may represent a trigger. The controlIdentifier of Axis and Trigger
+                // types are the same, which is how we find the right controlDescription and can setup the element properly.
+                OEHIDEvent *event = [[controller controlDescriptionForControlIdentifier:[[OEHIDEvent OE_eventWithElement:elem value:0] controlIdentifier]] genericEvent];
+                switch([event type])
                 {
-                    IOHIDElementRef elem  = (__bridge IOHIDElementRef)element;
-                    IOHIDElementSetProperty(elem, CFSTR(kOEHIDElementIsTriggerKey), (__bridge CFTypeRef)@YES);
+                    case OEHIDEventTypeHatSwitch :
+                        IOHIDElementSetProperty(elem, CFSTR(kOEHIDElementHatSwitchTypeKey), (__bridge CFTypeRef)@([event hatSwitchType]));
+                        break;
+                    case OEHIDEventTypeTrigger :
+                        IOHIDElementSetProperty(elem, CFSTR(kOEHIDElementIsTriggerKey), (__bridge CFTypeRef)@YES);
+                        break;
+                    default :
+                        break;
+                }
             }
         }
 
@@ -139,14 +134,14 @@
     return (__bridge NSString *)IOHIDDeviceGetProperty(_device, CFSTR(kIOHIDProductKey));
 }
 
-- (NSNumber *)vendorID
+- (NSUInteger)vendorID
 {
-    return (__bridge NSNumber *)IOHIDDeviceGetProperty(_device, CFSTR(kIOHIDVendorIDKey));
+    return [(__bridge NSNumber *)IOHIDDeviceGetProperty(_device, CFSTR(kIOHIDVendorIDKey)) integerValue];
 }
 
-- (NSNumber *)productID
+- (NSUInteger)productID
 {
-    return (__bridge NSNumber *)IOHIDDeviceGetProperty(_device, CFSTR(kIOHIDProductIDKey));
+    return [(__bridge NSNumber *)IOHIDDeviceGetProperty(_device, CFSTR(kIOHIDProductIDKey)) integerValue];
 }
 
 - (NSNumber *)locationID
@@ -177,7 +172,7 @@
     }
 
     NSUInteger cookie = [anEvent cookie];
-    if(cookie != NSNotFound) dict[@kIOHIDElementCookieKey] = @(cookie);
+    if(cookie != OEUndefinedCookie) dict[@kIOHIDElementCookieKey] = @(cookie);
 
     NSArray *elements = (__bridge_transfer NSArray *)IOHIDDeviceCopyMatchingElements(_device, (__bridge CFDictionaryRef)dict, 0);
 
@@ -191,43 +186,27 @@
 
 - (OEHIDEvent *)eventWithHIDValue:(IOHIDValueRef)aValue
 {
-    IOHIDElementRef  elem   = IOHIDValueGetElement(aValue);
-    uint32_t         cookie = (uint32_t)IOHIDElementGetCookie(elem);
-    OEHIDEvent      *event  = [_reusableEventMap objectForKey:@(cookie)];
+    OEHIDEvent *event = [OEHIDEvent eventWithDeviceHandler:self value:aValue];
+    if(event == nil) return nil;
 
-    if(event == nil)
-    {
-        event = [OEHIDEvent eventWithDeviceHandler:self value:aValue];
-        if(event == nil) return nil;
+    NSNumber   *cookieKey     = @([event cookie]);
+    OEHIDEvent *existingEvent = _latestEvents[cookieKey];
 
-        [_reusableEventMap setObject:event forKey:@(cookie)];
-    }
-    else NSAssert([event OE_setupEventWithDeviceHandler:self value:aValue], @"The event setup went wrong for event: %@", event);
+    if([event isEqualToEvent:existingEvent])
+        return nil;
 
-    return event;
+    return _latestEvents[cookieKey] = event;
 }
 
 - (void)dispatchEventWithHIDValue:(IOHIDValueRef)aValue
 {
     OEHIDEvent *event = [self eventWithHIDValue:aValue];
-    if([event hasChanges]) [NSApp postHIDEvent:event];
+    if(event != nil) [NSApp postHIDEvent:event];
 }
 
 - (io_service_t)serviceRef
 {
-	io_service_t service = MACH_PORT_NULL;
-
-#if MAC_OS_X_VERSION_MIN_REQUIRED > MAC_OS_X_VERSION_10_5
-	service = IOHIDDeviceGetService(_device);
-#else
-	NSMutableDictionary *matchingDict = (NSMutableDictionary *)IOServiceMatching(kIOHIDDeviceKey);
-	if(matchingDict != nil)
-	{
-		[matchingDict setValue:[self locationID] forKey:(id)CFSTR(kIOHIDLocationIDKey)];
-		service = IOServiceGetMatchingService(kIOMasterPortDefault, (CFDictionaryRef)matchingDict);
-	}
-#endif
-	return service;
+	return IOHIDDeviceGetService(_device);
 }
 
 - (BOOL)supportsForceFeedback
@@ -293,6 +272,136 @@ static void OEHandle_DeviceRemovalCallback(void *inContext, IOReturn inResult, v
 	IOHIDDeviceRef hidDevice = (IOHIDDeviceRef)inSender;
 
 	[(__bridge OEHIDDeviceHandler *)inContext OE_removeDeviceHandlerForDevice:hidDevice];
+}
+
+#pragma mark - Controller Description Set Up
+
+- (void)setUpControllerDescription:(OEControllerDescription *)description usingRepresentation:(NSDictionary *)controlRepresentations
+{
+    NSMutableArray *genericDesktopElements = [(__bridge_transfer NSArray *)IOHIDDeviceCopyMatchingElements(_device, (__bridge CFDictionaryRef)@{ @kIOHIDElementUsagePageKey : @(kHIDPage_GenericDesktop) }, 0) mutableCopy];
+    NSMutableArray *buttonElements = [(__bridge_transfer NSArray *)IOHIDDeviceCopyMatchingElements(_device, (__bridge CFDictionaryRef)@{ @kIOHIDElementUsagePageKey : @(kHIDPage_Button) }, 0) mutableCopy];
+
+    void (^addControl)(NSString *, NSDictionary *, IOHIDElementRef) =
+    ^(NSString *identifier, NSDictionary *representation, IOHIDElementRef elem)
+    {
+        OEHIDEvent *genericEvent = [OEHIDEvent OE_eventWithElement:elem value:0];
+        if(genericEvent == nil) return;
+
+        [description addControlWithIdentifier:identifier name:representation[@"Name"] event:genericEvent valueRepresentations:representation[@"Values"]];
+    };
+
+    [controlRepresentations enumerateKeysAndObjectsUsingBlock:
+     ^(NSString *identifier, NSDictionary *rep, BOOL *stop)
+     {
+         IOHIDElementRef elem = [self OE_elementForRepresentation:rep inGenericDesktopElements:genericDesktopElements andButtonElements:buttonElements];
+         addControl(identifier, rep, elem);
+     }];
+
+    if([[description controls] count] > 0)
+    {
+        [genericDesktopElements enumerateObjectsWithOptions:NSEnumerationConcurrent | NSEnumerationReverse usingBlock:
+         ^(id elem, NSUInteger idx, BOOL *stop)
+         {
+             if([OEHIDEvent OE_eventWithElement:(__bridge IOHIDElementRef)elem value:0] == nil)
+                 [genericDesktopElements removeObjectAtIndex:idx];
+         }];
+
+        if([genericDesktopElements count] > 0)
+            NSLog(@"WARNING: There are %ld generic desktop elements unaccounted for in %@", [genericDesktopElements count], [description name]);
+
+        if([buttonElements count] > 0)
+            NSLog(@"WARNING: There are %ld button elements unaccounted for.", [buttonElements count]);
+    }
+
+    for(id e in buttonElements) addControl(nil, nil, (__bridge IOHIDElementRef)e);
+
+    [self OE_setUpGenericDesktopElements:genericDesktopElements];
+
+    for(id e in genericDesktopElements) addControl(nil, nil, (__bridge IOHIDElementRef)e);
+}
+
+- (IOHIDElementRef)OE_elementForRepresentation:(NSDictionary *)representation inGenericDesktopElements:(NSMutableArray *)genericDesktopElements andButtonElements:(NSMutableArray *)buttonElements
+{
+    OEHIDEventType type = OEHIDEventTypeFromNSString(representation[@"Type"]);
+    NSUInteger cookie = [representation[@"Cookie"] integerValue];
+    NSUInteger usage = OEUsageFromUsageStringWithType(representation[@"Usage"], type);
+
+    __block IOHIDElementRef ret = NULL;
+
+    NSMutableArray *targetArray = type == OEHIDEventTypeButton ? buttonElements : genericDesktopElements;
+    [targetArray enumerateObjectsUsingBlock:
+     ^(id obj, NSUInteger idx, BOOL *stop)
+     {
+         IOHIDElementRef elem = (__bridge IOHIDElementRef)obj;
+
+         if((cookie != OEUndefinedCookie && cookie != IOHIDElementGetCookie(elem))
+            || usage != IOHIDElementGetUsage(elem))
+             return;
+
+         ret = elem;
+         // Make sure you stop enumerating right after modifying the array
+         // or else it will throw an exception.
+         [targetArray removeObjectAtIndex:idx];
+         *stop = YES;
+     }];
+
+    switch(type)
+    {
+        case OEHIDEventTypeTrigger :
+            IOHIDElementSetProperty(ret, CFSTR(kOEHIDElementIsTriggerKey), (__bridge CFTypeRef)@YES);
+            break;
+        case OEHIDEventTypeHatSwitch :
+            [self OE_setUpHatSwitchElement:ret];
+            break;
+        default :
+            break;
+    }
+
+    return ret;
+}
+
+- (void)OE_setUpGenericDesktopElements:(NSArray *)genericDesktopElements;
+{
+    NSMutableArray *posNegElements = [NSMutableArray array];
+    NSMutableArray *posElements    = [NSMutableArray array];
+
+    for(id element in genericDesktopElements)
+    {
+        IOHIDElementRef elem  = (__bridge IOHIDElementRef)element;
+        uint32_t        usage = IOHIDElementGetUsage(elem);
+
+        if(usage == kHIDUsage_GD_Hatswitch)
+            [self OE_setUpHatSwitchElement:elem];
+        else if(kHIDUsage_GD_X <= usage && usage <= kHIDUsage_GD_Rz)
+        {
+            CFIndex minimum = IOHIDElementGetLogicalMin(elem);
+            CFIndex maximum = IOHIDElementGetLogicalMax(elem);
+
+            if(minimum == 0) [posElements addObject:element];
+            else if(minimum < 0 && maximum > 0) [posNegElements addObject:element];
+        }
+    }
+
+    if([posNegElements count] != 0 && [posElements count] != 0)
+    {
+        for(id element in posElements)
+        {
+            IOHIDElementRef elem  = (__bridge IOHIDElementRef)element;
+            IOHIDElementSetProperty(elem, CFSTR(kOEHIDElementIsTriggerKey), (__bridge CFTypeRef)@YES);
+        }
+    }
+}
+
+- (void)OE_setUpHatSwitchElement:(IOHIDElementRef)element
+{
+    NSInteger count = IOHIDElementGetLogicalMax(element) - IOHIDElementGetLogicalMin(element) + 1;
+    OEHIDEventHatSwitchType type = OEHIDEventHatSwitchTypeUnknown;
+    switch(count)
+    {
+        case 4 : type = OEHIDEventHatSwitchType4Ways; break;
+        case 8 : type = OEHIDEventHatSwitchType8Ways; break;
+    }
+    IOHIDElementSetProperty(element, CFSTR(kOEHIDElementHatSwitchTypeKey), (__bridge CFTypeRef)@(type));
 }
 
 @end

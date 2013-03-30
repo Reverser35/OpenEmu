@@ -60,9 +60,6 @@
 
 @property(nonatomic, copy) NSString   *selectedKey;
 @property(nonatomic)       NSUInteger  selectedPlayer;
-@property(nonatomic)       NSInteger   selectedBindingType;
-
-- (NSInteger)selectedBindingType;
 
 - (BOOL)isKeyboardEventSelected;
 - (void)registerEvent:(OEHIDEvent *)anEvent;
@@ -71,6 +68,7 @@
 - (IBAction)changePlayer:(id)sender;
 - (IBAction)changeInputDevice:(id)sender;
 - (IBAction)changeInputControl:(id)sender;
+- (IBAction)searchForWiimote:(id)sender;
 
 #pragma mark -
 - (NSImage *)icon;

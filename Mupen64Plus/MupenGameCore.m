@@ -323,12 +323,19 @@ static void MupenSetAudioSpeed(int percent)
     //CoreDoCommand(M64CMD_STOP, 0, NULL);
 }
 
+- (void)resetEmulation
+{
+    // FIXME: do we want/need soft reset? It doesn’t seem to work well with sending M64CMD_RESET alone
+    // FIXME: (astrange) should this method worry about this instance’s dispatch semaphores?
+    CoreDoCommand(M64CMD_RESET, 1 /* hard reset */, NULL);
+}
+
 - (BOOL)saveStateToFileAtPath:(NSString *)fileName
 {
     // freeze save
     //FIXME how to fit into emu event loop?
     //CoreDoCommand(M64CMD_STATE_SAVE, 1, (void*)[fileName UTF8String]);
-    return YES;
+    return NO;
 }
 
 - (BOOL)loadStateFromFileAtPath:(NSString *)fileName
@@ -336,7 +343,7 @@ static void MupenSetAudioSpeed(int percent)
     // freeze load
     //FIXME how to fit into emu event loop?
     //CoreDoCommand(M64CMD_STATE_LOAD, 1, (void*)[fileName UTF8String]);
-    return YES;
+    return NO;
 }
 
 - (OEIntSize)bufferSize

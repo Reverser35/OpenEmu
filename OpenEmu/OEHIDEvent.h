@@ -81,6 +81,10 @@ typedef enum _OEHIDEventState : NSInteger {
     OEHIDEventStateOn
 } OEHIDEventState;
 
+enum : NSUInteger {
+    OEUndefinedCookie = 0
+};
+
 extern OEHIDEventHatDirection OEHIDEventHatDirectionFromNSString(NSString *string);
 extern NSString *NSStringFromOEHIDHatDirection(OEHIDEventHatDirection dir);
 extern NSString *NSLocalizedStringFromOEHIDHatDirection(OEHIDEventHatDirection dir);
@@ -96,35 +100,30 @@ extern NSString *NSStringFromIOHIDElement(IOHIDElementRef elem);
 - (NSString *)displayDescription;
 
 + (NSUInteger)keyCodeForVirtualKey:(CGCharCode)charCode;
-+ (instancetype)axisEventWithPadNumber:(NSUInteger)padNumber timestamp:(NSTimeInterval)timestamp axis:(OEHIDEventAxis)axis direction:(OEHIDEventAxisDirection)direction cookie:(NSUInteger)cookie;
-+ (instancetype)axisEventWithPadNumber:(NSUInteger)padNumber timestamp:(NSTimeInterval)timestamp axis:(OEHIDEventAxis)axis scaledValue:(CGFloat)value cookie:(NSUInteger)cookie;
-+ (instancetype)axisEventWithPadNumber:(NSUInteger)padNumber timestamp:(NSTimeInterval)timestamp axis:(OEHIDEventAxis)axis minimum:(NSInteger)minimum value:(NSInteger)value maximum:(NSInteger)maximum cookie:(NSUInteger)cookie;
-+ (instancetype)triggerEventWithPadNumber:(NSUInteger)padNumber timestamp:(NSTimeInterval)timestamp axis:(OEHIDEventAxis)axis direction:(OEHIDEventAxisDirection)direction cookie:(NSUInteger)cookie;
-+ (instancetype)triggerEventWithPadNumber:(NSUInteger)padNumber timestamp:(NSTimeInterval)timestamp axis:(OEHIDEventAxis)axis value:(NSInteger)value maximum:(NSInteger)maximum cookie:(NSUInteger)cookie;
-+ (instancetype)buttonEventWithPadNumber:(NSUInteger)padNumber timestamp:(NSTimeInterval)timestamp buttonNumber:(NSUInteger)number state:(OEHIDEventState)state cookie:(NSUInteger)cookie;
-+ (instancetype)hatSwitchEventWithPadNumber:(NSUInteger)padNumber timestamp:(NSTimeInterval)timestamp type:(OEHIDEventHatSwitchType)hatSwitchType direction:(OEHIDEventHatDirection)aDirection cookie:(NSUInteger)cookie;
-+ (instancetype)keyEventWithTimestamp:(NSTimeInterval)timestamp keyCode:(NSUInteger)keyCode state:(OEHIDEventState)state cookie:(NSUInteger)cookie;
 + (instancetype)eventWithDeviceHandler:(OEHIDDeviceHandler *)aDeviceHandler value:(IOHIDValueRef)aValue;
++ (instancetype)axisEventWithDeviceHandler:(OEDeviceHandler *)aDeviceHandler timestamp:(NSTimeInterval)timestamp axis:(OEHIDEventAxis)axis direction:(OEHIDEventAxisDirection)direction cookie:(NSUInteger)cookie;
++ (instancetype)axisEventWithDeviceHandler:(OEDeviceHandler *)aDeviceHandler timestamp:(NSTimeInterval)timestamp axis:(OEHIDEventAxis)axis value:(CGFloat)value cookie:(NSUInteger)cookie;
++ (instancetype)axisEventWithDeviceHandler:(OEDeviceHandler *)aDeviceHandler timestamp:(NSTimeInterval)timestamp axis:(OEHIDEventAxis)axis minimum:(NSInteger)minimum value:(NSInteger)value maximum:(NSInteger)maximum cookie:(NSUInteger)cookie;
++ (instancetype)triggerEventWithDeviceHandler:(OEDeviceHandler *)aDeviceHandler timestamp:(NSTimeInterval)timestamp axis:(OEHIDEventAxis)axis direction:(OEHIDEventAxisDirection)direction cookie:(NSUInteger)cookie;
++ (instancetype)triggerEventWithDeviceHandler:(OEDeviceHandler *)aDeviceHandler timestamp:(NSTimeInterval)timestamp axis:(OEHIDEventAxis)axis value:(NSInteger)value maximum:(NSInteger)maximum cookie:(NSUInteger)cookie;
++ (instancetype)triggerEventWithDeviceHandler:(OEDeviceHandler *)aDeviceHandler timestamp:(NSTimeInterval)timestamp axis:(OEHIDEventAxis)axis value:(CGFloat)value cookie:(NSUInteger)cookie;
++ (instancetype)buttonEventWithDeviceHandler:(OEDeviceHandler *)aDeviceHandler timestamp:(NSTimeInterval)timestamp buttonNumber:(NSUInteger)number state:(OEHIDEventState)state cookie:(NSUInteger)cookie;
++ (instancetype)hatSwitchEventWithDeviceHandler:(OEDeviceHandler *)aDeviceHandler timestamp:(NSTimeInterval)timestamp type:(OEHIDEventHatSwitchType)hatSwitchType direction:(OEHIDEventHatDirection)aDirection cookie:(NSUInteger)cookie;
++ (instancetype)keyEventWithTimestamp:(NSTimeInterval)timestamp keyCode:(NSUInteger)keyCode state:(OEHIDEventState)state cookie:(NSUInteger)cookie;
 
-@property(readonly) NSUInteger              padNumber;
+@property(readonly) OEDeviceHandler        *deviceHandler;
 @property(readonly) NSTimeInterval          timestamp;
-@property(readonly) NSTimeInterval          previousTimestamp;
-@property(readonly) NSTimeInterval          elapsedTime;
 @property(readonly) OEHIDEventType          type;
 @property(readonly) NSUInteger              cookie;
-@property(readonly) BOOL                    hasPreviousState;
+@property(readonly) NSUInteger              usagePage;
+@property(readonly) NSUInteger              usage;
 @property(readonly) BOOL                    hasOffState;
-@property(readonly) BOOL                    hasChanges;
 
 // Axis event or Trigger event
 @property(readonly) OEHIDEventAxis          axis;              // Axis and Trigger
-@property(readonly) OEHIDEventAxisDirection previousDirection; // Axis and Trigger (only Null and Positive for Trigger)
 @property(readonly) OEHIDEventAxisDirection direction;         // Axis and Trigger (only Null and Positive for Trigger)
 @property(readonly) OEHIDEventAxisDirection oppositeDirection; // Axis only
-@property(readonly) NSInteger               minimum;           // Axis only
-@property(readonly) NSInteger               previousValue;     // Axis and Trigger
-@property(readonly) NSInteger               value;             // Axis and Trigger
-@property(readonly) NSInteger               maximum;           // Axis and Trigger
+@property(readonly) CGFloat                 value;             // Axis and Trigger
 
 // Button event
 @property(readonly) NSUInteger              buttonNumber;
@@ -133,16 +132,23 @@ extern NSString *NSStringFromIOHIDElement(IOHIDElementRef elem);
 @property(readonly) NSUInteger              keycode;
 
 // Button or Key event state
-@property(readonly) OEHIDEventState         previousState;
 @property(readonly) OEHIDEventState         state;
 
 // HatSwitch event
 @property(readonly) OEHIDEventHatSwitchType hatSwitchType;
-@property(readonly) OEHIDEventHatDirection  previousHatDirection;
 @property(readonly) OEHIDEventHatDirection  hatDirection;
 
 - (BOOL)isEqualToEvent:(OEHIDEvent *)anObject;
 - (BOOL)isUsageEqualToEvent:(OEHIDEvent *)anObject; // Checks all properties but state
+
+- (NSUInteger)controlIdentifier;
+- (NSUInteger)controlValueIdentifier;
+
++ (NSUInteger)controlIdentifierForType:(OEHIDEventType)type cookie:(NSUInteger)cookie usage:(NSUInteger)usage;
+
+// The value parameter can be an OEHIDEventAxisDirection for Axis and Trigger,
+// or OEHIDEventHatDirection for HatSwitch, 1 is assumed for Button and Keyboard types.
++ (NSUInteger)controlValueIdentifierForType:(OEHIDEventType)type cookie:(NSUInteger)cookie usage:(NSUInteger)usage value:(NSInteger)value;
 
 @end
 
@@ -155,6 +161,8 @@ extern NSString *NSStringFromIOHIDElement(IOHIDElementRef elem);
 // Hatswitch event copy
 - (instancetype)hatSwitchEventWithDirection:(OEHIDEventHatDirection)aDirection;
 
+- (instancetype)eventWithDeviceHandler:(OEDeviceHandler *)aDeviceHandler;
+
 @end
 
 @interface OEHIDEvent (OEHIDEventBinding)
@@ -162,10 +170,6 @@ extern NSString *NSStringFromIOHIDElement(IOHIDElementRef elem);
 - (NSUInteger)bindingHash;
 - (BOOL)isBindingEqualToEvent:(OEHIDEvent *)anEvent;
 
-@end
-
-@interface OEHIDEvent (OECustomEventAccess)
-- (void)setState:(OEHIDEventState)newState;
 @end
 
 @interface NSEvent (OEEventConversion)

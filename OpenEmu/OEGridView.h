@@ -29,8 +29,6 @@
 #import "OEGridViewLayoutManager.h"
 #import "OEGridViewFieldEditor.h"
 
-extern NSString *const OELightStyleGridViewMenu;
-
 @class OEGridView;
 
 @protocol OEGridViewDelegate <NSObject>
@@ -42,6 +40,8 @@ extern NSString *const OELightStyleGridViewMenu;
 - (NSDragOperation)gridView:(OEGridView *)gridView draggingUpdated:(id<NSDraggingInfo>)sender;
 - (BOOL)gridView:(OEGridView *)gridView acceptDrop:(id<NSDraggingInfo>)sender;
 
+- (BOOL)gridView:(OEGridView *)gridView shouldTypeSelectForEvent:(NSEvent *)event withCurrentSearchString:(NSString *)searchString;
+- (NSString*)gridView:(OEGridView *)gridView typeSelectStringForItemAtIndex:(NSUInteger)idx;
 @end
 
 #pragma mark -
@@ -108,6 +108,9 @@ extern NSString *const OELightStyleGridViewMenu;
         unsigned int validateDrop : 1;
         unsigned int draggingUpdated : 1;
         unsigned int acceptDrop : 1;
+        
+        unsigned int shouldTypeSelect : 1;
+        unsigned int typeSelectString : 1;
     } _delegateHas;                                 // Cached methods that the delegate implements
 
     struct

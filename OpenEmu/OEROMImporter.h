@@ -45,7 +45,6 @@ extern NSString *const OEImportErrorDomainSuccess;
 
 typedef enum : NSInteger {
     OEImportErrorCodeAlreadyInDatabase     = -1,
-    OEImportErrorCodeWaitingForArchiveSync = 1,
     OEImportErrorCodeMultipleSystems       = 2,
     OEImportErrorCodeNoSystem              = 3,
     OEImportErrorCodeInvalidFile           = 4,
@@ -57,7 +56,6 @@ extern NSString *const OEImportInfoMD5;
 extern NSString *const OEImportInfoCRC;
 extern NSString *const OEImportInfoROMObjectID;
 extern NSString *const OEImportInfoSystemID;
-extern NSString *const OEImportInfoArchiveSync;
 
 #pragma mark - Importer Status
 typedef enum : NSInteger {
@@ -85,6 +83,16 @@ typedef enum : NSInteger {
 - (BOOL)importItemsAtPaths:(NSArray *)path;
 - (BOOL)importItemAtURL:(NSURL *)url;
 - (BOOL)importItemsAtURLs:(NSArray *)url;
+
+- (BOOL)importItemAtPath:(NSString *)path intoCollectionWithID:(NSURL*)collectionID;
+- (BOOL)importItemsAtPaths:(NSArray *)path intoCollectionWithID:(NSURL*)collectionID;
+- (BOOL)importItemAtURL:(NSURL *)url intoCollectionWithID:(NSURL*)collectionID;
+- (BOOL)importItemsAtURLs:(NSArray *)url intoCollectionWithID:(NSURL*)collectionID;
+
+- (BOOL)importItemAtPath:(NSString *)path intoCollectionWithID:(NSURL*)collectionID withCompletionHandler:(OEImportItemCompletionBlock)handler;
+- (BOOL)importItemsAtPaths:(NSArray *)paths intoCollectionWithID:(NSURL*)collectionID  withCompletionHandler:(OEImportItemCompletionBlock)handler;
+- (BOOL)importItemAtURL:(NSURL *)url intoCollectionWithID:(NSURL*)collectionID  withCompletionHandler:(OEImportItemCompletionBlock)handler;
+- (BOOL)importItemsAtURLs:(NSArray *)urls intoCollectionWithID:(NSURL*)collectionID  withCompletionHandler:(OEImportItemCompletionBlock)handler;
 
 - (BOOL)importItemAtPath:(NSString *)path withCompletionHandler:(OEImportItemCompletionBlock)handler;
 - (BOOL)importItemsAtPaths:(NSArray *)paths withCompletionHandler:(OEImportItemCompletionBlock)handler;

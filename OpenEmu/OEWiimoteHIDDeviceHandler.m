@@ -1,7 +1,6 @@
 /*
  Copyright (c) 2012, OpenEmu Team
 
-
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
      * Redistributions of source code must retain the above copyright
@@ -29,17 +28,12 @@
 #import <IOBluetooth/IOBluetooth.h>
 #import "NSApplication+OEHIDAdditions.h"
 #import "OEHIDEvent.h"
-
+#import "OEControllerDescription.h"
 
 NSString *const OEWiimoteDeviceHandlerDidDisconnectNotification = @"OEWiimoteDeviceHandlerDidDisconnectNotification";
 
 @interface OEHIDEvent ()
 - (OEHIDEvent *)OE_eventWithWiimoteDeviceHandler:(OEWiimoteHIDDeviceHandler *)aDeviceHandler;
-
-- (BOOL)OE_updateButtonEventWithState:(OEHIDEventState)state timestamp:(NSTimeInterval)timestamp;
-- (BOOL)OE_updateAxisEventWithValue:(NSInteger)value maximum:(NSInteger)maximum minimum:(NSInteger)minimum timestamp:(NSTimeInterval)timestamp;
-- (BOOL)OE_updateTriggerEventWithValue:(NSInteger)value maximum:(NSInteger)maximum timestamp:(NSTimeInterval)timestamp;
-- (BOOL)OE_updateHatSwitchEventWithDirection:(OEHIDEventHatDirection)direction timestamp:(NSTimeInterval)timestamp;
 @end
 
 enum {
@@ -80,7 +74,7 @@ typedef enum : NSUInteger {
     OEWiimoteButtonIdentifierClassicL     = 0x2000,
     OEWiimoteButtonIdentifierClassicDown  = 0x4000,
     OEWiimoteButtonIdentifierClassicRight = 0x8000,
-    
+
     OEWiimoteButtonIdentifierProR3        = 0x00000001,
     OEWiimoteButtonIdentifierProL3        = 0x00000002,
     OEWiimoteButtonIdentifierProUp        = 0x00000100,
@@ -98,7 +92,6 @@ typedef enum : NSUInteger {
     OEWiimoteButtonIdentifierProL         = 0x00200000,
     OEWiimoteButtonIdentifierProDown      = 0x00400000,
     OEWiimoteButtonIdentifierProRight     = 0x00800000,
-    
 } OEWiimoteButtonIdentifier;
 
 typedef enum {
@@ -107,13 +100,13 @@ typedef enum {
     OEWiimoteNunchuckAxisScaledMinimumValue = -128,
     OEWiimoteNunchuckAxisScaledMaximumValue =  127,
 
-    OEWiimoteNunchuckAxisXUsage = OEHIDEventAxisX,
-    OEWiimoteNunchuckAxisYUsage = OEHIDEventAxisY,
-
     // Cookies from 0x00 to 0xFF are reserved for buttons
     OEWiimoteNunchuckAxisXCookie = 0x100,
     OEWiimoteNunchuckAxisYCookie = 0x200,
 } OEWiimoteNunchuckParameters;
+
+static const OEHIDEventAxis OEWiimoteNunchuckAxisXUsage = OEHIDEventAxisX;
+static const OEHIDEventAxis OEWiimoteNunchuckAxisYUsage = OEHIDEventAxisY;
 
 typedef enum {
     OEWiimoteClassicControllerLeftJoystickMaximumValue  = 63,
@@ -127,15 +120,6 @@ typedef enum {
     OEWiimoteClassicControllerRightJoystickScaledMaximumValue =  15,
 
     OEWiimoteClassicControllerDeadZone                  = 4,
-    
-    OEWiimoteClassicControllerLeftJoystickAxisXUsage    = OEHIDEventAxisX,
-    OEWiimoteClassicControllerLeftJoystickAxisYUsage    = OEHIDEventAxisY,
-
-    OEWiimoteClassicControllerRightJoystickAxisXUsage   = OEHIDEventAxisRx,
-    OEWiimoteClassicControllerRightJoystickAxisYUsage   = OEHIDEventAxisRy,
-
-    OEWiimoteClassicControllerLeftTriggerAxisUsage      = OEHIDEventAxisZ,
-    OEWiimoteClassicControllerRightTriggerAxisUsage     = OEHIDEventAxisRz,
 
     OEWiimoteClassicControllerLeftJoystickAxisXCookie   = 0x300,
     OEWiimoteClassicControllerLeftJoystickAxisYCookie   = 0x400,
@@ -147,25 +131,34 @@ typedef enum {
     OEWiimoteClassicControllerRightTriggerAxisCookie    = 0x800,
 } OEWiimoteClassicControllerParameters;
 
+static const OEHIDEventAxis OEWiimoteClassicControllerLeftJoystickAxisXUsage  = OEHIDEventAxisX;
+static const OEHIDEventAxis OEWiimoteClassicControllerLeftJoystickAxisYUsage  = OEHIDEventAxisY;
+
+static const OEHIDEventAxis OEWiimoteClassicControllerRightJoystickAxisXUsage = OEHIDEventAxisRx;
+static const OEHIDEventAxis OEWiimoteClassicControllerRightJoystickAxisYUsage = OEHIDEventAxisRy;
+
+static const OEHIDEventAxis OEWiimoteClassicControllerLeftTriggerAxisUsage    = OEHIDEventAxisZ;
+static const OEHIDEventAxis OEWiimoteClassicControllerRightTriggerAxisUsage   = OEHIDEventAxisRz;
+
 typedef enum {
     OEWiimoteProControllerJoystickMinimumValue = 900,
     OEWiimoteProControllerJoystickMaximumValue = 3400,
     OEWiimoteProControllerDeadZone = 256,
     OEWiimoteProControllerJoystickScaledMinimumValue = -1250,
     OEWiimoteProControllerJoystickScaledMaximumValue = 1250,
-        
-    OEWiimoteProControllerLeftJoystickAxisXUsage    = OEHIDEventAxisX,
-    OEWiimoteProControllerLeftJoystickAxisYUsage    = OEHIDEventAxisY,
-    
-    OEWiimoteProControllerRightJoystickAxisXUsage   = OEHIDEventAxisRx,
-    OEWiimoteProControllerRightJoystickAxisYUsage   = OEHIDEventAxisRy,
-        
+
     OEWiimoteProControllerLeftJoystickAxisXCookie   = 0x1000,
     OEWiimoteProControllerLeftJoystickAxisYCookie   = 0x2000,
-    
+
     OEWiimoteProControllerRightJoystickAxisXCookie  = 0x4000,
     OEWiimoteProControllerRightJoystickAxisYCookie  = 0x8000,
 } OEWiimoteProControllerParameters;
+
+static const OEHIDEventAxis OEWiimoteProControllerLeftJoystickAxisXUsage  = OEHIDEventAxisX;
+static const OEHIDEventAxis OEWiimoteProControllerLeftJoystickAxisYUsage  = OEHIDEventAxisY;
+
+static const OEHIDEventAxis OEWiimoteProControllerRightJoystickAxisXUsage = OEHIDEventAxisRx;
+static const OEHIDEventAxis OEWiimoteProControllerRightJoystickAxisYUsage = OEHIDEventAxisRy;
 
 typedef enum {
     OEWiimoteExpansionIdentifierNunchuck          = 0x0000,
@@ -212,7 +205,7 @@ static NSUInteger _OEWiimoteIdentifierToHIDUsage[] = {
     [26] = OEWiimoteButtonIdentifierClassicPlus,
     [27] = OEWiimoteButtonIdentifierClassicHome,
     [28] = OEWiimoteButtonIdentifierClassicMinus,
-    
+
     [29] = OEWiimoteButtonIdentifierProUp,
     [30] = OEWiimoteButtonIdentifierProLeft,
     [31] = OEWiimoteButtonIdentifierProRight,
@@ -230,7 +223,6 @@ static NSUInteger _OEWiimoteIdentifierToHIDUsage[] = {
     [43] = OEWiimoteButtonIdentifierProZL,
     [44] = OEWiimoteButtonIdentifierProR3,
     [45] = OEWiimoteButtonIdentifierProL3,
-    
 };
 
 static const NSUInteger _OEWiimoteButtonCount = (sizeof(_OEWiimoteIdentifierToHIDUsage)/(sizeof(_OEWiimoteIdentifierToHIDUsage[0]))) - 1;
@@ -263,9 +255,10 @@ static void _OEWiimoteIdentifierEnumerateUsingBlock(NSRange range, void(^block)(
 
 @interface OEWiimoteHIDDeviceHandler ()
 {
-    NSMutableDictionary     *_reusableEvents;
+    NSMutableDictionary *_latestEvents;
 
-    OEWiimoteExpansionType _expansionType;
+    uint8_t                       _reportBuffer[128];
+    OEWiimoteExpansionType        _expansionType;
     OEExpansionInitializationStep _expansionInitilization;
     struct {
         uint16_t wiimote;
@@ -275,14 +268,15 @@ static void _OEWiimoteIdentifierEnumerateUsingBlock(NSRange range, void(^block)(
         uint32_t proController;
     } _latestButtonReports;
 
-    NSUInteger _rumbleAndLEDStatus;
-
-    BOOL _statusReportRequested;
-    BOOL _isConnected;
-    uint8_t _reportBuffer[128];
+    BOOL       _statusReportRequested;
+    BOOL       _isConnected;
+    uint8_t    _batteryLevel;   // value from 0-4
+    BOOL       _charging;
+    BOOL       _pluggedIn;
+    BOOL       _analogSettled;  // Allows short delay before events are issued; fixes Issue 544
 }
 
-@property(readwrite) CGFloat batteryLevel;
+@property(readwrite) BOOL lowBatteryWarning;
 
 - (void)OE_writeData:(const uint8_t *)data length:(NSUInteger)length atAddress:(uint32_t)address;
 - (void)OE_readDataOfLength:(NSUInteger)length atAddress:(uint32_t)address;
@@ -299,6 +293,7 @@ static void _OEWiimoteIdentifierEnumerateUsingBlock(NSRange range, void(^block)(
 - (void)OE_readExpansionPortType;
 - (void)OE_configureReportType;
 - (void)OE_synchronizeRumbleAndLEDStatus;
+- (void)OE_checkBatteryLevel;
 
 - (void)OE_parseWiimoteButtonData:(uint16_t)data;
 
@@ -317,15 +312,15 @@ static void _OEWiimoteIdentifierEnumerateUsingBlock(NSRange range, void(^block)(
 - (void)readReportData:(void*)dataPointer length:(size_t)dataLength;
 @end
 
-static void OE_wiimoteIOHIDReportCallback(void *                  context,
-                                         IOReturn                result,
-                                         void *                  sender,
-                                         IOHIDReportType         type,
-                                         uint32_t                reportID,
-                                         uint8_t *               report,
-                                         CFIndex                 reportLength)
+static void OE_wiimoteIOHIDReportCallback(void            *context,
+                                          IOReturn         result,
+                                          void            *sender,
+                                          IOHIDReportType  type,
+                                          uint32_t         reportID,
+                                          uint8_t         *report,
+                                          CFIndex          reportLength)
 {
-    [(__bridge OEWiimoteHIDDeviceHandler*)context readReportData:report length:reportLength];
+    [(__bridge OEWiimoteHIDDeviceHandler *)context readReportData:report length:reportLength];
 }
 
 @implementation OEWiimoteHIDDeviceHandler
@@ -334,13 +329,16 @@ static void OE_wiimoteIOHIDReportCallback(void *                  context,
 {
     if((self = [super initWithIOHIDDevice:aDevice]))
     {
-        _rumbleAndLEDStatus = OEWiimoteDeviceHandlerLEDAll;
-
         _expansionPortEnabled = YES;
         _expansionPortAttached = NO;
         _expansionType = OEWiimoteExpansionTypeNotConnected;
 
-        _reusableEvents = [[NSMutableDictionary alloc] init];
+        _latestEvents = [[NSMutableDictionary alloc] init];
+        
+        _analogSettled = NO;
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.5 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+            _analogSettled = YES;
+        });
     }
 
     return self;
@@ -348,12 +346,20 @@ static void OE_wiimoteIOHIDReportCallback(void *                  context,
 
 - (BOOL)connect
 {
+    [self setRumbleActivated:YES];
+    [self setExpansionPortEnabled:YES];
+
     _isConnected = YES;
-    
-    IOHIDDeviceRegisterInputReportCallback([self device], _reportBuffer, 128, OE_wiimoteIOHIDReportCallback, (__bridge void*)self);
+
+    IOHIDDeviceRegisterInputReportCallback([self device], _reportBuffer, 128, OE_wiimoteIOHIDReportCallback, (__bridge void *)self);
     [self OE_requestStatus];
     [self OE_configureReportType];
     [self OE_synchronizeRumbleAndLEDStatus];
+
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.35 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+        [self setRumbleActivated:NO];
+    });
+
     return YES;
 }
 
@@ -374,34 +380,12 @@ enum {
     OEWiimoteRumbleAndLEDMask = OEWiimoteDeviceHandlerLEDAll | OEWiimoteRumbleMask,
 };
 
-- (OEWiimoteDeviceHandlerLED)illuminatedLEDs
-{
-    return _rumbleAndLEDStatus & OEWiimoteDeviceHandlerLEDAll;
-}
-
-- (void)setIlluminatedLEDs:(OEWiimoteDeviceHandlerLED)value
-{
-    if(((_rumbleAndLEDStatus ^ value) & OEWiimoteDeviceHandlerLEDAll) != 0)
-    {
-        _rumbleAndLEDStatus = (value & OEWiimoteDeviceHandlerLEDAll) | (_rumbleAndLEDStatus & ~OEWiimoteDeviceHandlerLEDAll);
-
-        [self OE_synchronizeRumbleAndLEDStatus];
-    }
-}
-
-- (BOOL)isRumbleActivated
-{
-    return _rumbleAndLEDStatus & OEWiimoteRumbleMask;
-}
-
 - (void)setRumbleActivated:(BOOL)value
 {
     value = !!value;
-    if((_rumbleAndLEDStatus & OEWiimoteRumbleMask) != value)
+    if(_rumbleActivated != value)
     {
-        if(value) _rumbleAndLEDStatus |=  OEWiimoteRumbleMask;
-        else      _rumbleAndLEDStatus &= ~OEWiimoteRumbleMask;
-
+        _rumbleActivated = value;
         [self OE_synchronizeRumbleAndLEDStatus];
     }
 }
@@ -424,7 +408,7 @@ enum {
     };
 
     // Vibration flag
-    if([self isRumbleActivated]) command[1] |= 0x01;
+    if(_rumbleActivated) command[1] |= 0x01;
 
     memcpy(command + 6, data, length);
 
@@ -444,7 +428,7 @@ enum {
         (length  >>  0) & 0xFF,
     };
 
-    if([self isRumbleActivated]) command[1] |= 0x01;
+    if(_rumbleActivated) command[1] |= 0x01;
 
     [self OE_sendCommandWithData:command length:7];
 }
@@ -462,16 +446,12 @@ enum {
     IOReturn ret = kIOReturnSuccess;
     for(NSUInteger i = 0; i < 10; i++)
     {
-        ret = IOHIDDeviceSetReport([self device],
-                             kIOHIDReportTypeOutput,
-                             0,
-                             buffer,
-                             length);
+        ret = IOHIDDeviceSetReport([self device], kIOHIDReportTypeOutput, 0, buffer, length);
 
         if(ret != kIOReturnSuccess)
         {
              NSLog(@"Could not send command, error: %x", ret);
-             usleep(10000);   
+             usleep(10000);
         }
         else break;
     }
@@ -488,8 +468,14 @@ enum {
     if(!_statusReportRequested) [self OE_configureReportType];
     else _statusReportRequested = NO;
 
-    // 0xC0 means fully charged
-    [self setBatteryLevel:response[7] / (CGFloat)0xC0];
+    // battery level is last three bits in upper nibble, values from 0b0000 to 0b0100
+    _batteryLevel = (response[7] & 0x70) >> 4;
+
+    if(_expansionType == OEWiimoteExpansionTypeWiiUProController)
+    {
+        _charging = (response[7] & 0x4) == 0;
+        _pluggedIn = (response[7] & 0x8) == 0;
+    }
 
     if(response[4] & 0x2 && !_expansionPortAttached)
     {
@@ -499,16 +485,20 @@ enum {
     }
     else if(((response[4] & 0x2) == 0) && _expansionPortAttached)
         _expansionPortAttached = NO;
+
+    [self OE_checkBatteryLevel];
 }
 
 - (void)OE_handleDataReportData:(const uint8_t *)response length:(NSUInteger)length;
 {
-    if(response[1] != 0x3D) [self OE_parseWiimoteButtonData:(response[2] << 8 | response[3])];
+    if(response[1] != 0x3D && _expansionType != OEWiimoteExpansionTypeWiiUProController)
+        [self OE_parseWiimoteButtonData:(response[2] << 8 | response[3])];
 
     if(!_expansionPortEnabled || !_expansionPortAttached) return;
 
     switch(response[1])
     {
+        // Right now, we should only get type 0x34; set in OE_configureReportType
         case 0x32 :
         case 0x34 : [self OE_handleExpansionReportData:response +  4 length:length -  4]; break;
         case 0x35 : [self OE_handleExpansionReportData:response +  7 length:length -  7]; break;
@@ -540,21 +530,26 @@ enum {
         default:
             break;
     }
+	
+    if(length > 10)
+    {
+        _batteryLevel = (data[10] & 0x70) >> 4;
+        if(_expansionType == OEWiimoteExpansionTypeWiiUProController)
+        {
+            _charging = (data[10] & 0x4) == 0;
+            _pluggedIn = (data[10] & 0x8) == 0;
+        }
+    }
+
+    [self OE_checkBatteryLevel];
 }
 
 - (void)OE_handleWriteResponseData:(const uint8_t *)response length:(NSUInteger)length;
 {
     if(length <= 5) return;
 
-    switch(response[5])
-    {
-        case 0x00 : NSLog(@"Write %0x - Success", response[4]); break;
-        case 0x03 : NSLog(@"Write %0x - Error",   response[4]); break;
-        default   : NSLog(@"Write %0x - Unknown", response[4]); break;
-    }
-    
     //If we wrote to a register, assume its from expansion init
-    if (response[4] == 0x16)
+    if(response[4] == 0x16)
     {
         _expansionInitilization += 1;
         [self OE_readExpansionPortType];
@@ -572,7 +567,7 @@ enum {
         OEWiimoteExpansionType expansion = OEWiimoteExpansionTypeNotConnected;
 
         uint16_t expansionType = (response[21] << 8) | response[22];
-        switch (expansionType)
+        switch(expansionType)
         {
             case OEWiimoteExpansionIdentifierNunchuck:
                 expansion = OEWiimoteExpansionTypeNunchuck;
@@ -618,13 +613,37 @@ enum {
 
 - (void)OE_synchronizeRumbleAndLEDStatus
 {
-    [self OE_sendCommandWithData:(uint8_t[]){ 0x11, _rumbleAndLEDStatus & OEWiimoteRumbleAndLEDMask } length:2];
+    NSUInteger devNumber = [self deviceNumber];
+    BOOL led1 = (devNumber == 1) || (devNumber == 5);
+    BOOL led2 = (devNumber == 2) || (devNumber == 6) || (devNumber == 8);
+    BOOL led3 = (devNumber == 3) || (devNumber == 7) || (devNumber == 8);
+    BOOL led4 = (devNumber == 4) || (devNumber == 6) || (devNumber == 7) || (devNumber == 8);
+    uint8_t wiimoteLEDStatus = led1 ? OEWiimoteDeviceHandlerLED1 : 0 |
+                               led2 ? OEWiimoteDeviceHandlerLED2 : 0 |
+                               led3 ? OEWiimoteDeviceHandlerLED3 : 0 |
+                               led4 ? OEWiimoteDeviceHandlerLED4 : 0;
+
+    uint8_t rumbleAndLEDStatus = wiimoteLEDStatus | _rumbleActivated;
+    [self OE_sendCommandWithData:(uint8_t[]){ 0x11, rumbleAndLEDStatus & OEWiimoteRumbleAndLEDMask } length:2];
+}
+
+- (void)OE_checkBatteryLevel
+{
+    if(_batteryLevel < 1 && !_charging)
+    {
+        if(!_lowBatteryWarning)
+        {
+            _lowBatteryWarning = YES;
+            [[NSNotificationCenter defaultCenter] postNotificationName:OEDeviceHandlerDidReceiveLowBatteryWarningNotification object:self];
+        }
+    }
+    else if(_charging) _lowBatteryWarning = NO;
 }
 
 - (void)OE_readExpansionPortType
 {
     // Initializing expansion port based on http://wiibrew.org/wiki/Wiimote/Extension_Controllers#The_New_Way
-    switch (_expansionInitilization)
+    switch(_expansionInitilization)
     {
         case OEExpansionInitializationStepWriteOne:
             [self OE_writeData:&(uint8_t){ 0x55 } length:1 atAddress:0x04A400F0];
@@ -717,18 +736,17 @@ enum {
 
 - (void)OE_parseClassicControllerJoystickAndTriggerData:(const uint8_t *)data;
 {
-
     NSInteger(^scaleValue)(int8_t value) =
     ^ NSInteger (int8_t value)
     {
         NSInteger ret = value;
         ret = value;
-        
+
         if(-OEWiimoteClassicControllerDeadZone < ret && ret <= OEWiimoteClassicControllerDeadZone) ret = 0;
-        
+
         return ret;
     };
-    
+
     NSTimeInterval timestamp = [[NSDate date] timeIntervalSince1970];
 
     NSInteger leftX  = (data[0] & 0x3F);
@@ -736,16 +754,16 @@ enum {
 
     leftX = scaleValue(leftX + OEWiimoteClassicControllerLeftJoystickScaledMinimumValue);
     leftY = scaleValue(leftY + OEWiimoteClassicControllerLeftJoystickScaledMinimumValue);
-    
+
     NSInteger rightX = (data[0] & 0xC0) >> 3 | (data[1] & 0xC0) >> 5 | (data[2] & 0x80) >> 7;
     NSInteger rightY = (data[2] & 0x1F);
 
     rightX = scaleValue(rightX + OEWiimoteClassicControllerRightJoystickScaledMinimumValue);
     rightY = scaleValue(rightY + OEWiimoteClassicControllerRightJoystickScaledMinimumValue);
-    
+
     NSInteger leftTrigger  = (data[2] & 0x60) >> 2 | (data[3] & 0xE0) >> 5;
     NSInteger rightTrigger = (data[3] & 0x1F);
-    
+
     [self OE_dispatchAxisEventWithAxis:OEWiimoteClassicControllerLeftJoystickAxisXUsage
                                minimum:OEWiimoteClassicControllerLeftJoystickScaledMinimumValue
                                  value:leftX
@@ -790,10 +808,10 @@ enum {
 - (void)OE_parseProControllerButtonData:(uint32_t)data
 {
     NSTimeInterval timestamp = [[NSDate date] timeIntervalSince1970];
-    
+
     uint32_t changes = data ^ _latestButtonReports.proController;
     _latestButtonReports.proController = data;
-    
+
     _OEWiimoteIdentifierEnumerateUsingBlock(_OEProButtonRange, ^(OEWiimoteButtonIdentifier identifier, NSUInteger usage, BOOL *stop) {
         // Pro controller uses 0 for pressed, not 1 like standard wii buttons
         if(changes & identifier)
@@ -803,49 +821,51 @@ enum {
 
 - (void)OE_parseProControllerJoystickData:(const uint8_t *)data
 {
-    NSInteger (^decodeJoystickData)(const uint8_t*) = ^(const uint8_t *data){
+    NSInteger (^decodeJoystickData)(const uint8_t *) =
+    ^(const uint8_t *data)
+    {
         uint8_t high = data[1] & 0xf;
-        uint8_t low = (data[0]);
+        uint8_t low  = data[0];
         NSInteger value = (high << 8) | (low);
-        
+
         NSInteger ret = value;
         ret -= OEWiimoteProControllerJoystickMinimumValue;
         ret += OEWiimoteProControllerJoystickScaledMinimumValue;
-        
+
         if(-OEWiimoteProControllerDeadZone < ret && ret <= OEWiimoteProControllerDeadZone) ret = 0;
-        
+
         return ret;
     };
-    
+
     NSTimeInterval timestamp = [[NSDate date] timeIntervalSince1970];
-    
+
     NSInteger leftX  = decodeJoystickData(data);
-    NSInteger leftY  = decodeJoystickData(data+4);
-    
-    NSInteger rightX = decodeJoystickData(data+2);
-    NSInteger rightY = decodeJoystickData(data+6);
-        
+    NSInteger leftY  = decodeJoystickData(data + 4);
+
+    NSInteger rightX = decodeJoystickData(data + 2);
+    NSInteger rightY = decodeJoystickData(data + 6);
+
     [self OE_dispatchAxisEventWithAxis:OEWiimoteProControllerLeftJoystickAxisXUsage
                                minimum:OEWiimoteProControllerJoystickScaledMinimumValue
                                  value:leftX
                                maximum:OEWiimoteProControllerJoystickScaledMaximumValue
                              timestamp:timestamp
                                 cookie:OEWiimoteProControllerLeftJoystickAxisXCookie];
-    
+
     [self OE_dispatchAxisEventWithAxis:OEWiimoteProControllerLeftJoystickAxisYUsage
                                minimum:OEWiimoteProControllerJoystickScaledMinimumValue
                                  value:leftY
                                maximum:OEWiimoteProControllerJoystickScaledMaximumValue
                              timestamp:timestamp
                                 cookie:OEWiimoteProControllerLeftJoystickAxisYCookie];
-    
+
     [self OE_dispatchAxisEventWithAxis:OEWiimoteProControllerRightJoystickAxisXUsage
                                minimum:OEWiimoteProControllerJoystickScaledMinimumValue
                                  value:rightX
                                maximum:OEWiimoteProControllerJoystickScaledMaximumValue
                              timestamp:timestamp
                                 cookie:OEWiimoteProControllerRightJoystickAxisXCookie];
-    
+
     [self OE_dispatchAxisEventWithAxis:OEWiimoteProControllerRightJoystickAxisYUsage
                                minimum:OEWiimoteProControllerJoystickScaledMinimumValue
                                  value:rightY
@@ -858,52 +878,33 @@ enum {
 
 - (void)OE_dispatchButtonEventWithUsage:(NSUInteger)usage state:(OEHIDEventState)state timestamp:(NSTimeInterval)timestamp cookie:(NSUInteger)cookie;
 {
-    OEHIDEvent *existingEvent = [_reusableEvents objectForKey:@(cookie)];
-
-    if(existingEvent == nil)
-    {
-        existingEvent = [OEHIDEvent buttonEventWithPadNumber:[self deviceNumber] timestamp:timestamp buttonNumber:usage state:state cookie:cookie];
-        [_reusableEvents setObject:existingEvent forKey:@(cookie)];
-    }
-    else if(![existingEvent OE_updateButtonEventWithState:state timestamp:timestamp])
-        return;
-
-    [NSApp postHIDEvent:existingEvent];
+    [self OE_dispatchEvent:[OEHIDEvent buttonEventWithDeviceHandler:self timestamp:timestamp buttonNumber:usage state:state cookie:cookie] withCookie:cookie];
 }
 
 - (void)OE_dispatchAxisEventWithAxis:(OEHIDEventAxis)axis minimum:(NSInteger)minimum value:(NSInteger)value maximum:(NSInteger)maximum timestamp:(NSTimeInterval)timestamp cookie:(NSUInteger)cookie;
 {
-    OEHIDEvent *existingEvent = [_reusableEvents objectForKey:@(cookie)];
-
-    if(existingEvent == nil)
-    {
-        existingEvent = [OEHIDEvent axisEventWithPadNumber:[self deviceNumber] timestamp:timestamp axis:axis minimum:minimum value:value maximum:maximum cookie:cookie];
-        [_reusableEvents setObject:existingEvent forKey:@(cookie)];
-    }
-    else if(![existingEvent OE_updateAxisEventWithValue:value maximum:maximum minimum:minimum timestamp:timestamp])
-        return;
-
-    [NSApp postHIDEvent:existingEvent];
+    [self OE_dispatchEvent:[OEHIDEvent axisEventWithDeviceHandler:self timestamp:timestamp axis:axis minimum:minimum value:value maximum:maximum cookie:cookie] withCookie:cookie];
 }
 
 - (void)OE_dispatchTriggerEventWithAxis:(OEHIDEventAxis)axis value:(NSInteger)value maximum:(NSInteger)maximum timestamp:(NSTimeInterval)timestamp cookie:(NSUInteger)cookie;
 {
-    OEHIDEvent *existingEvent = [_reusableEvents objectForKey:@(cookie)];
-
-    if(existingEvent == nil)
-    {
-        existingEvent = [OEHIDEvent triggerEventWithPadNumber:[self deviceNumber] timestamp:timestamp axis:axis value:value maximum:maximum cookie:cookie];
-        [_reusableEvents setObject:existingEvent forKey:@(cookie)];
-    }
-    else if(![existingEvent OE_updateTriggerEventWithValue:value maximum:maximum timestamp:timestamp])
-        return;
-
-    [NSApp postHIDEvent:existingEvent];
+    [self OE_dispatchEvent:[OEHIDEvent triggerEventWithDeviceHandler:self timestamp:timestamp axis:axis value:value maximum:maximum cookie:cookie] withCookie:cookie];
 }
 
-- (void)readReportData:(void*)dataPointer length:(size_t)dataLength
+- (void)OE_dispatchEvent:(OEHIDEvent *)anEvent withCookie:(NSUInteger)cookie;
 {
-    uint8_t data[dataLength+1];
+    NSNumber   *cookieKey     = @(cookie);
+    OEHIDEvent *existingEvent = _latestEvents[cookieKey];
+
+    if([anEvent isEqualToEvent:existingEvent]) return;
+
+    _latestEvents[cookieKey] = anEvent;
+    if(_analogSettled) [NSApp postHIDEvent:anEvent];
+}
+
+- (void)readReportData:(void *)dataPointer length:(size_t)dataLength
+{
+    uint8_t data[dataLength + 1];
     data[0] = 0xa1;
     memcpy(data+1, dataPointer, dataLength);
     dataLength += 1;
@@ -922,6 +923,39 @@ enum {
     }
     else if((data[1] & 0xF0) == 0x30) // report contains button info
         [self OE_handleDataReportData:data length:dataLength];
+}
+
+- (void)setUpControllerDescription:(OEControllerDescription *)description usingRepresentation:(NSDictionary *)controlRepresentations;
+{
+    [controlRepresentations enumerateKeysAndObjectsUsingBlock:
+     ^(NSString *identifier, NSDictionary *representation, BOOL *stop)
+     {
+         OEHIDEventType type = OEHIDEventTypeFromNSString(representation[@"Type"]);
+         NSUInteger usage = OEUsageFromUsageStringWithType(representation[@"Usage"], type);
+         NSUInteger cookie = [representation[@"Cookie"] integerValue] ? : usage;
+
+         OEHIDEvent *event = nil;
+         switch(type)
+         {
+             case OEHIDEventTypeAxis :
+                 event = [OEHIDEvent axisEventWithDeviceHandler:nil timestamp:0 axis:usage direction:OEHIDEventAxisDirectionNull cookie:cookie];
+                 break;
+             case OEHIDEventTypeButton :
+                 event = [OEHIDEvent buttonEventWithDeviceHandler:nil timestamp:0 buttonNumber:usage state:OEHIDEventStateOn cookie:cookie];
+                 break;
+             case OEHIDEventTypeHatSwitch :
+                 NSAssert(NO, @"A hat switch on Wiimote?!");
+                 break;
+             case OEHIDEventTypeKeyboard :
+                 NSAssert(NO, @"A keyboard on Wiimote?!");
+                 break;
+             case OEHIDEventTypeTrigger :
+                 event = [OEHIDEvent triggerEventWithDeviceHandler:nil timestamp:0 axis:usage direction:OEHIDEventAxisDirectionPositive cookie:cookie];
+                 break;
+         }
+
+         [description addControlWithIdentifier:identifier name:representation[@"Name"] event:event valueRepresentations:representation[@"Values"]];
+     }];
 }
 
 @end
