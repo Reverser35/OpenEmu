@@ -31,7 +31,7 @@
 	<key>OEProjectURL</key>
 	<string>http://jum.pdroms.de/emulators/emul.html</string>
 	<key>OEGameCorePlayerCount</key>
-	<string>2</string>
+	<string>1</string>
 	<key>OEGameCoreClass</key>
 	<string>VectrexGameCore</string>
 	<key>SUFeedURL</key>
