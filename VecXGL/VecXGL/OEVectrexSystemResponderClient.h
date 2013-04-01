@@ -30,14 +30,14 @@
 
 typedef enum _OEVectrexButton
 {
-    OEVectrexButton1,
-    OEVectrexButton2,
-    OEVectrexButton3,
-    OEVectrexButton4,
     OEVectrexAnalogUp,
     OEVectrexAnalogDown,
     OEVectrexAnalogLeft,
     OEVectrexAnalogRight,
+    OEVectrexButton1,
+    OEVectrexButton2,
+    OEVectrexButton3,
+    OEVectrexButton4,
     OEVectrexButtonCount
 } OEVectrexButton;
 
