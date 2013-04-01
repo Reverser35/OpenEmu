@@ -28,23 +28,35 @@
 
 @protocol OESystemResponderClient;
 
-typedef enum _OEVectrexButton
+typedef enum _OEJaguarButton
 {
-    OEVectrexAnalogUp,
-    OEVectrexAnalogDown,
-    OEVectrexAnalogLeft,
-    OEVectrexAnalogRight,
-    OEVectrexButton1,
-    OEVectrexButton2,
-    OEVectrexButton3,
-    OEVectrexButton4,
-    OEVectrexButtonCount
-} OEVectrexButton;
+	OEJaguarButtonUp,
+	OEJaguarButtonDown,
+	OEJaguarButtonLeft,
+	OEJaguarButtonRight,
+	OEJaguarButtonA,
+	OEJaguarButtonB,
+	OEJaguarButtonC,
+    OEJaguarButtonPause,
+    OEJaguarButtonOption,
+    OEJaguarButton1,
+    OEJaguarButton2,
+    OEJaguarButton3,
+    OEJaguarButton4,
+    OEJaguarButton5,
+    OEJaguarButton6,
+    OEJaguarButton7,
+    OEJaguarButton8,
+    OEJaguarButton9,
+    OEJaguarButton0,
+    OEJaguarButtonAsterisk,
+    OEJaguarButtonPound,
+	OEJaguarButtonCount
+} OEJaguarButton;
 
-@protocol OEVectrexSystemResponderClient <OESystemResponderClient, NSObject>
+@protocol OEJaguarSystemResponderClient <OESystemResponderClient, NSObject>
 
-- (oneway void)didMoveVectrexJoystickDirection:(OEVectrexButton)button withValue:(CGFloat)value forPlayer:(NSUInteger)player;
-- (oneway void)didPushVectrexButton:(OEVectrexButton)button forPlayer:(NSUInteger)player;
-- (oneway void)didReleaseVectrexButton:(OEVectrexButton)button forPlayer:(NSUInteger)player;
+- (oneway void)didPushJaguarButton:(OEJaguarButton)button forPlayer:(NSUInteger)player;
+- (oneway void)didReleaseJaguarButton:(OEJaguarButton)button forPlayer:(NSUInteger)player;
 
 @end

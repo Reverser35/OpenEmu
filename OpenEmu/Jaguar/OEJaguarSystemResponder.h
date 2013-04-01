@@ -24,27 +24,12 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import <Cocoa/Cocoa.h>
+#import <OpenEmuSystem/OpenEmuSystem.h>
 
-@protocol OESystemResponderClient;
+@protocol OEJaguarSystemResponderClient;
 
-typedef enum _OEVectrexButton
-{
-    OEVectrexAnalogUp,
-    OEVectrexAnalogDown,
-    OEVectrexAnalogLeft,
-    OEVectrexAnalogRight,
-    OEVectrexButton1,
-    OEVectrexButton2,
-    OEVectrexButton3,
-    OEVectrexButton4,
-    OEVectrexButtonCount
-} OEVectrexButton;
+@interface OEJaguarSystemResponder : OEBasicSystemResponder
 
-@protocol OEVectrexSystemResponderClient <OESystemResponderClient, NSObject>
-
-- (oneway void)didMoveVectrexJoystickDirection:(OEVectrexButton)button withValue:(CGFloat)value forPlayer:(NSUInteger)player;
-- (oneway void)didPushVectrexButton:(OEVectrexButton)button forPlayer:(NSUInteger)player;
-- (oneway void)didReleaseVectrexButton:(OEVectrexButton)button forPlayer:(NSUInteger)player;
+@property(nonatomic, weak) id<OEJaguarSystemResponderClient> client;
 
 @end

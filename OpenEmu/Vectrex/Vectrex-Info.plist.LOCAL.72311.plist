@@ -22,13 +22,37 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>1.2</string>
-	<key>NSHumanReadableCopyright</key>
-	<string>Copyright © 2013 OpenEmu Team. All rights reserved.</string>
 	<key>NSPrincipalClass</key>
 	<string>OESystemController</string>
+	<key>OESystemIdentifier</key>
+	<string>openemu.system.vectrex</string>
+	<key>OEResponderClassKey</key>
+	<string>OEVectrexSystemResponder</string>
+	<key>OESystemName</key>
+	<string>Vectrex</string>
+	<key>OENumberOfPlayersKey</key>
+	<integer>1</integer>
+	<key>OESystemIcon</key>
+	<string></string>
 	<key>OEArchiveIDs</key>
 	<array>
 		<integer>30</integer>
+	</array>
+	<key>OEFileSuffixes</key>
+	<array>
+		<string>vec</string>
+		<string>gam</string>
+	</array>
+	<key>OEGenericControlNamesKey</key>
+	<array>
+		<string>OEVectrexButton1</string>
+		<string>OEVectrexButton2</string>
+		<string>OEVectrexButton3</string>
+		<string>OEVectrexButton4</string>
+		<string>OEVectrexAnalogUp</string>
+		<string>OEVectrexAnalogDown</string>
+		<string>OEVectrexAnalogLeft</string>
+		<string>OEVectrexAnalogRight</string>
 	</array>
 	<key>OEControlListKey</key>
 	<array>
@@ -88,54 +112,5 @@
 			</array>
 		</array>
 	</array>
-	<key>OEControlTypesKey</key>
-	<dict>
-		<key>OEAxisControlsKey</key>
-		<array>
-			<array>
-				<string>OEVectrexAnalogUp</string>
-				<string>OEVectrexAnalogDown</string>
-			</array>
-			<array>
-				<string>OEVectrexAnalogLeft</string>
-				<string>OEVectrexAnalogRight</string>
-			</array>
-		</array>
-		<key>OEHatSwitchControlsKey</key>
-		<array>
-			<array>
-				<string>OEVectrexAnalogUp</string>
-				<string>OEVectrexAnalogRight</string>
-				<string>OEVectrexAnalogDown</string>
-				<string>OEVectrexAnalogLeft</string>
-			</array>
-		</array>
-	</dict>
-	<key>OEFileSuffixes</key>
-	<array>
-		<string>vec</string>
-		<string>gam</string>
-	</array>
-	<key>OEGenericControlNamesKey</key>
-	<array>
-		<string>OEVectrexAnalogUp</string>
-		<string>OEVectrexAnalogDown</string>
-		<string>OEVectrexAnalogLeft</string>
-		<string>OEVectrexAnalogRight</string>
-		<string>OEVectrexButton1</string>
-		<string>OEVectrexButton2</string>
-		<string>OEVectrexButton3</string>
-		<string>OEVectrexButton4</string>
-	</array>
-	<key>OENumberOfPlayersKey</key>
-	<integer>1</integer>
-	<key>OEResponderClassKey</key>
-	<string>OEVectrexSystemResponder</string>
-	<key>OESystemIcon</key>
-	<string>vectrex_library</string>
-	<key>OESystemIdentifier</key>
-	<string>openemu.system.vectrex</string>
-	<key>OESystemName</key>
-	<string>Vectrex</string>
 </dict>
 </plist>

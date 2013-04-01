@@ -1,6 +1,7 @@
 /*
  Copyright (c) 2011, OpenEmu Team
  
+ 
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
  * Redistributions of source code must retain the above copyright
@@ -24,27 +25,25 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import <Cocoa/Cocoa.h>
+#import "OEJaguarSystemResponder.h"
+#import "OEJaguarSystemResponderClient.h"
 
-@protocol OESystemResponderClient;
+@implementation OEJaguarSystemResponder
+@dynamic client;
 
-typedef enum _OEVectrexButton
++ (Protocol *)gameSystemResponderClientProtocol;
 {
-    OEVectrexAnalogUp,
-    OEVectrexAnalogDown,
-    OEVectrexAnalogLeft,
-    OEVectrexAnalogRight,
-    OEVectrexButton1,
-    OEVectrexButton2,
-    OEVectrexButton3,
-    OEVectrexButton4,
-    OEVectrexButtonCount
-} OEVectrexButton;
+    return @protocol(OEJaguarSystemResponderClient);
+}
 
-@protocol OEVectrexSystemResponderClient <OESystemResponderClient, NSObject>
+- (void)pressEmulatorKey:(OESystemKey *)aKey
+{
+    [[self client] didPushJaguarButton:(OEJaguarButton)[aKey key] forPlayer:[aKey player]];
+}
 
-- (oneway void)didMoveVectrexJoystickDirection:(OEVectrexButton)button withValue:(CGFloat)value forPlayer:(NSUInteger)player;
-- (oneway void)didPushVectrexButton:(OEVectrexButton)button forPlayer:(NSUInteger)player;
-- (oneway void)didReleaseVectrexButton:(OEVectrexButton)button forPlayer:(NSUInteger)player;
+- (void)releaseEmulatorKey:(OESystemKey *)aKey
+{
+    [[self client] didReleaseJaguarButton:(OEJaguarButton)[aKey key] forPlayer:[aKey player]];
+}
 
 @end

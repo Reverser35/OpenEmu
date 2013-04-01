@@ -22,14 +22,48 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>1.2</string>
+<<<<<<< HEAD
+	<key>NSPrincipalClass</key>
+	<string>OESystemController</string>
+	<key>OESystemIdentifier</key>
+	<string>openemu.system.vectrex</string>
+	<key>OEResponderClassKey</key>
+	<string>OEVectrexSystemResponder</string>
+	<key>OESystemName</key>
+	<string>Vectrex</string>
+	<key>OENumberOfPlayersKey</key>
+	<integer>1</integer>
+	<key>OESystemIcon</key>
+	<string></string>
+=======
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2013 OpenEmu Team. All rights reserved.</string>
 	<key>NSPrincipalClass</key>
 	<string>OESystemController</string>
+>>>>>>> main/master
 	<key>OEArchiveIDs</key>
 	<array>
 		<integer>30</integer>
 	</array>
+<<<<<<< HEAD
+	<key>OEFileSuffixes</key>
+	<array>
+		<string>vec</string>
+		<string>gam</string>
+	</array>
+	<key>OEGenericControlNamesKey</key>
+	<array>
+		<string>OEVectrexButton1</string>
+		<string>OEVectrexButton2</string>
+		<string>OEVectrexButton3</string>
+		<string>OEVectrexButton4</string>
+		<string>OEVectrexAnalogUp</string>
+		<string>OEVectrexAnalogDown</string>
+		<string>OEVectrexAnalogLeft</string>
+		<string>OEVectrexAnalogRight</string>
+	</array>
+=======
+>>>>>>> main/master
 	<key>OEControlListKey</key>
 	<array>
 		<array>
@@ -88,6 +122,8 @@
 			</array>
 		</array>
 	</array>
+<<<<<<< HEAD
+=======
 	<key>OEControlTypesKey</key>
 	<dict>
 		<key>OEAxisControlsKey</key>
@@ -137,5 +173,6 @@
 	<string>openemu.system.vectrex</string>
 	<key>OESystemName</key>
 	<string>Vectrex</string>
+>>>>>>> main/master
 </dict>
 </plist>

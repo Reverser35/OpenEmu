@@ -17,73 +17,74 @@
 	<key>CFBundlePackageType</key>
 	<string>BNDL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.2</string>
+	<string>1.0</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>1.2</string>
+	<string>1</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2013 OpenEmu Team. All rights reserved.</string>
 	<key>NSPrincipalClass</key>
-	<string>OESystemController</string>
+	<string>OEVMUSystemController</string>
 	<key>OEArchiveIDs</key>
 	<array>
-		<integer>30</integer>
+		<integer>300</integer>
 	</array>
 	<key>OEControlListKey</key>
 	<array>
 		<array>
 			<array>
-				<string>Analog</string>
 				<dict>
 					<key>OEControlListKeyLabelKey</key>
 					<string>Up</string>
 					<key>OEControlListKeyNameKey</key>
-					<string>OEVectrexAnalogUp</string>
+					<string>OEVMUButtonUp</string>
 				</dict>
 				<dict>
 					<key>OEControlListKeyLabelKey</key>
 					<string>Down</string>
 					<key>OEControlListKeyNameKey</key>
-					<string>OEVectrexAnalogDown</string>
+					<string>OEVMUButtonDown</string>
 				</dict>
 				<dict>
 					<key>OEControlListKeyLabelKey</key>
 					<string>Left</string>
 					<key>OEControlListKeyNameKey</key>
-					<string>OEVectrexAnalogLeft</string>
+					<string>OEVMUButtonLeft</string>
 				</dict>
 				<dict>
 					<key>OEControlListKeyLabelKey</key>
 					<string>Right</string>
 					<key>OEControlListKeyNameKey</key>
-					<string>OEVectrexAnalogRight</string>
+					<string>OEVMUButtonRight</string>
 				</dict>
 			</array>
 			<array>
 				<dict>
 					<key>OEControlListKeyLabelKey</key>
-					<string>Button 1</string>
+					<string>Sleep</string>
 					<key>OEControlListKeyNameKey</key>
-					<string>OEVectrexButton1</string>
+					<string>OEVMUButtonSleep</string>
 				</dict>
 				<dict>
 					<key>OEControlListKeyLabelKey</key>
-					<string>Button 2</string>
+					<string>Mode</string>
 					<key>OEControlListKeyNameKey</key>
-					<string>OEVectrexButton2</string>
+					<string>OEVMUButtonMode</string>
+				</dict>
+			</array>
+			<array>
+				<dict>
+					<key>OEControlListKeyLabelKey</key>
+					<string>A</string>
+					<key>OEControlListKeyNameKey</key>
+					<string>OEVMUButtonA</string>
 				</dict>
 				<dict>
 					<key>OEControlListKeyLabelKey</key>
-					<string>Button 3</string>
+					<string>B</string>
 					<key>OEControlListKeyNameKey</key>
-					<string>OEVectrexButton3</string>
-				</dict>
-				<dict>
-					<key>OEControlListKeyLabelKey</key>
-					<string>Button 4</string>
-					<key>OEControlListKeyNameKey</key>
-					<string>OEVectrexButton4</string>
+					<string>OEVMUButtonB</string>
 				</dict>
 			</array>
 		</array>
@@ -93,49 +94,48 @@
 		<key>OEAxisControlsKey</key>
 		<array>
 			<array>
-				<string>OEVectrexAnalogUp</string>
-				<string>OEVectrexAnalogDown</string>
+				<string>OEVMUButtonUp</string>
+				<string>OEVMUButtonDown</string>
 			</array>
 			<array>
-				<string>OEVectrexAnalogLeft</string>
-				<string>OEVectrexAnalogRight</string>
+				<string>OEVMUButtonLeft</string>
+				<string>OEVMUButtonRight</string>
 			</array>
 		</array>
 		<key>OEHatSwitchControlsKey</key>
 		<array>
 			<array>
-				<string>OEVectrexAnalogUp</string>
-				<string>OEVectrexAnalogRight</string>
-				<string>OEVectrexAnalogDown</string>
-				<string>OEVectrexAnalogLeft</string>
+				<string>OEVMUButtonUp</string>
+				<string>OEVMUButtonRight</string>
+				<string>OEVMUButtonDown</string>
+				<string>OEVMUButtonLeft</string>
 			</array>
 		</array>
 	</dict>
 	<key>OEFileSuffixes</key>
 	<array>
-		<string>vec</string>
-		<string>gam</string>
+		<string>vms</string>
 	</array>
 	<key>OEGenericControlNamesKey</key>
 	<array>
-		<string>OEVectrexAnalogUp</string>
-		<string>OEVectrexAnalogDown</string>
-		<string>OEVectrexAnalogLeft</string>
-		<string>OEVectrexAnalogRight</string>
-		<string>OEVectrexButton1</string>
-		<string>OEVectrexButton2</string>
-		<string>OEVectrexButton3</string>
-		<string>OEVectrexButton4</string>
+		<string>OEVMUButtonUp</string>
+		<string>OEVMUButtonDown</string>
+		<string>OEVMUButtonLeft</string>
+		<string>OEVMUButtonRight</string>
+		<string>OEVMUButtonA</string>
+		<string>OEVMUButtonB</string>
+		<string>OEVMUButtonSleep</string>
+		<string>OEVMUButtonMode</string>
 	</array>
 	<key>OENumberOfPlayersKey</key>
 	<integer>1</integer>
 	<key>OEResponderClassKey</key>
-	<string>OEVectrexSystemResponder</string>
+	<string>OEVMUSystemResponder</string>
 	<key>OESystemIcon</key>
-	<string>vectrex_library</string>
+	<string>vmu_library</string>
 	<key>OESystemIdentifier</key>
-	<string>openemu.system.vectrex</string>
+	<string>openemu.system.vmu</string>
 	<key>OESystemName</key>
-	<string>Vectrex</string>
+	<string>VMU</string>
 </dict>
 </plist>

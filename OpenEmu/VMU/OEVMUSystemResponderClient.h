@@ -28,23 +28,22 @@
 
 @protocol OESystemResponderClient;
 
-typedef enum _OEVectrexButton
+typedef enum _OEVMUButton
 {
-    OEVectrexAnalogUp,
-    OEVectrexAnalogDown,
-    OEVectrexAnalogLeft,
-    OEVectrexAnalogRight,
-    OEVectrexButton1,
-    OEVectrexButton2,
-    OEVectrexButton3,
-    OEVectrexButton4,
-    OEVectrexButtonCount
-} OEVectrexButton;
+	OEVMUButtonUp,
+	OEVMUButtonDown,
+	OEVMUButtonLeft,
+	OEVMUButtonRight,
+	OEVMUButtonA,
+	OEVMUButtonB,
+    OEVMUButtonSleep,
+    OEVMUButtonMode,
+	OEVMUButtonCount
+} OEVMUButton;
 
-@protocol OEVectrexSystemResponderClient <OESystemResponderClient, NSObject>
+@protocol OEVMUSystemResponderClient <OESystemResponderClient, NSObject>
 
-- (oneway void)didMoveVectrexJoystickDirection:(OEVectrexButton)button withValue:(CGFloat)value forPlayer:(NSUInteger)player;
-- (oneway void)didPushVectrexButton:(OEVectrexButton)button forPlayer:(NSUInteger)player;
-- (oneway void)didReleaseVectrexButton:(OEVectrexButton)button forPlayer:(NSUInteger)player;
+- (oneway void)didPushVMUButton:(OEVMUButton)button forPlayer:(NSUInteger)player;
+- (oneway void)didReleaseVMUButton:(OEVMUButton)button forPlayer:(NSUInteger)player;
 
 @end

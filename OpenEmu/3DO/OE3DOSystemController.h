@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2011, OpenEmu Team
+ Copyright (c) 2012, OpenEmu Team
  
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
@@ -24,27 +24,8 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import <Cocoa/Cocoa.h>
+#import <OpenEmuSystem/OpenEmuSystem.h>
 
-@protocol OESystemResponderClient;
-
-typedef enum _OEVectrexButton
-{
-    OEVectrexAnalogUp,
-    OEVectrexAnalogDown,
-    OEVectrexAnalogLeft,
-    OEVectrexAnalogRight,
-    OEVectrexButton1,
-    OEVectrexButton2,
-    OEVectrexButton3,
-    OEVectrexButton4,
-    OEVectrexButtonCount
-} OEVectrexButton;
-
-@protocol OEVectrexSystemResponderClient <OESystemResponderClient, NSObject>
-
-- (oneway void)didMoveVectrexJoystickDirection:(OEVectrexButton)button withValue:(CGFloat)value forPlayer:(NSUInteger)player;
-- (oneway void)didPushVectrexButton:(OEVectrexButton)button forPlayer:(NSUInteger)player;
-- (oneway void)didReleaseVectrexButton:(OEVectrexButton)button forPlayer:(NSUInteger)player;
+@interface OE3DOSystemController : OESystemController
 
 @end

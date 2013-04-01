@@ -17,73 +17,94 @@
 	<key>CFBundlePackageType</key>
 	<string>BNDL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.2</string>
+	<string>1.0</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>1.2</string>
+	<string>1</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2013 OpenEmu Team. All rights reserved.</string>
 	<key>NSPrincipalClass</key>
-	<string>OESystemController</string>
+	<string>OE3DOSystemController</string>
 	<key>OEArchiveIDs</key>
 	<array>
-		<integer>30</integer>
+		<integer>69</integer>
 	</array>
 	<key>OEControlListKey</key>
 	<array>
 		<array>
 			<array>
-				<string>Analog</string>
 				<dict>
 					<key>OEControlListKeyLabelKey</key>
 					<string>Up</string>
 					<key>OEControlListKeyNameKey</key>
-					<string>OEVectrexAnalogUp</string>
+					<string>OE3DOButtonUp</string>
 				</dict>
 				<dict>
 					<key>OEControlListKeyLabelKey</key>
 					<string>Down</string>
 					<key>OEControlListKeyNameKey</key>
-					<string>OEVectrexAnalogDown</string>
+					<string>OE3DOButtonDown</string>
 				</dict>
 				<dict>
 					<key>OEControlListKeyLabelKey</key>
 					<string>Left</string>
 					<key>OEControlListKeyNameKey</key>
-					<string>OEVectrexAnalogLeft</string>
+					<string>OE3DOButtonLeft</string>
 				</dict>
 				<dict>
 					<key>OEControlListKeyLabelKey</key>
 					<string>Right</string>
 					<key>OEControlListKeyNameKey</key>
-					<string>OEVectrexAnalogRight</string>
+					<string>OE3DOButtonRight</string>
 				</dict>
 			</array>
 			<array>
 				<dict>
 					<key>OEControlListKeyLabelKey</key>
-					<string>Button 1</string>
+					<string>P</string>
 					<key>OEControlListKeyNameKey</key>
-					<string>OEVectrexButton1</string>
+					<string>OE3DOButtonP</string>
 				</dict>
 				<dict>
 					<key>OEControlListKeyLabelKey</key>
-					<string>Button 2</string>
+					<string>X</string>
 					<key>OEControlListKeyNameKey</key>
-					<string>OEVectrexButton2</string>
+					<string>OE3DOButtonX</string>
+				</dict>
+			</array>
+			<array>
+				<dict>
+					<key>OEControlListKeyLabelKey</key>
+					<string>L</string>
+					<key>OEControlListKeyNameKey</key>
+					<string>OE3DOButtonL</string>
 				</dict>
 				<dict>
 					<key>OEControlListKeyLabelKey</key>
-					<string>Button 3</string>
+					<string>R</string>
 					<key>OEControlListKeyNameKey</key>
-					<string>OEVectrexButton3</string>
+					<string>OE3DOButtonR</string>
+				</dict>
+			</array>
+			<array>
+				<dict>
+					<key>OEControlListKeyLabelKey</key>
+					<string>A</string>
+					<key>OEControlListKeyNameKey</key>
+					<string>OE3DOButtonA</string>
 				</dict>
 				<dict>
 					<key>OEControlListKeyLabelKey</key>
-					<string>Button 4</string>
+					<string>B</string>
 					<key>OEControlListKeyNameKey</key>
-					<string>OEVectrexButton4</string>
+					<string>OE3DOButtonB</string>
+				</dict>
+				<dict>
+					<key>OEControlListKeyLabelKey</key>
+					<string>C</string>
+					<key>OEControlListKeyNameKey</key>
+					<string>OE3DOButtonC</string>
 				</dict>
 			</array>
 		</array>
@@ -93,49 +114,51 @@
 		<key>OEAxisControlsKey</key>
 		<array>
 			<array>
-				<string>OEVectrexAnalogUp</string>
-				<string>OEVectrexAnalogDown</string>
+				<string>OE3DOButtonUp</string>
+				<string>OE3DOButtonDown</string>
 			</array>
 			<array>
-				<string>OEVectrexAnalogLeft</string>
-				<string>OEVectrexAnalogRight</string>
+				<string>OE3DOButtonLeft</string>
+				<string>OE3DOButtonRight</string>
 			</array>
 		</array>
 		<key>OEHatSwitchControlsKey</key>
 		<array>
 			<array>
-				<string>OEVectrexAnalogUp</string>
-				<string>OEVectrexAnalogRight</string>
-				<string>OEVectrexAnalogDown</string>
-				<string>OEVectrexAnalogLeft</string>
+				<string>OE3DOButtonUp</string>
+				<string>OE3DOButtonRight</string>
+				<string>OE3DOButtonDown</string>
+				<string>OE3DOButtonLeft</string>
 			</array>
 		</array>
 	</dict>
 	<key>OEFileSuffixes</key>
 	<array>
-		<string>vec</string>
-		<string>gam</string>
+		<string>cue</string>
 	</array>
 	<key>OEGenericControlNamesKey</key>
 	<array>
-		<string>OEVectrexAnalogUp</string>
-		<string>OEVectrexAnalogDown</string>
-		<string>OEVectrexAnalogLeft</string>
-		<string>OEVectrexAnalogRight</string>
-		<string>OEVectrexButton1</string>
-		<string>OEVectrexButton2</string>
-		<string>OEVectrexButton3</string>
-		<string>OEVectrexButton4</string>
+		<string>OE3DOButtonUp</string>
+		<string>OE3DOButtonDown</string>
+		<string>OE3DOButtonLeft</string>
+		<string>OE3DOButtonRight</string>
+		<string>OE3DOButtonA</string>
+		<string>OE3DOButtonB</string>
+		<string>OE3DOButtonC</string>
+		<string>OE3DOButtonL</string>
+		<string>OE3DOButtonR</string>
+		<string>OE3DOButtonP</string>
+		<string>OE3DOButtonX</string>
 	</array>
 	<key>OENumberOfPlayersKey</key>
 	<integer>1</integer>
 	<key>OEResponderClassKey</key>
-	<string>OEVectrexSystemResponder</string>
+	<string>OE3DOSystemResponder</string>
 	<key>OESystemIcon</key>
-	<string>vectrex_library</string>
+	<string>3do_library</string>
 	<key>OESystemIdentifier</key>
-	<string>openemu.system.vectrex</string>
+	<string>openemu.system.3do</string>
 	<key>OESystemName</key>
-	<string>Vectrex</string>
+	<string>3DO</string>
 </dict>
 </plist>
