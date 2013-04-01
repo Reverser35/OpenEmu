@@ -26,6 +26,7 @@
 		980BE282170989FE00511340 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 980BE280170989FE00511340 /* InfoPlist.strings */; };
 		980BE28B17098AB100511340 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 980BE28A17098AB100511340 /* OpenGL.framework */; };
 		980BE28D17098ABA00511340 /* OpenEmuBase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 980BE28C17098ABA00511340 /* OpenEmuBase.framework */; };
+		98B77B5C170999C700F2B5A6 /* JaguarGameCore.m in Sources */ = {isa = PBXBuildFile; fileRef = 98B77B5B170999C700F2B5A6 /* JaguarGameCore.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,6 +50,9 @@
 		980BE283170989FE00511340 /* VirtualJaguar-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "VirtualJaguar-Prefix.pch"; sourceTree = "<group>"; };
 		980BE28A17098AB100511340 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		980BE28C17098ABA00511340 /* OpenEmuBase.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenEmuBase.framework; path = "../../../../Library/Developer/Xcode/DerivedData/OpenEmu-bhfveylavlxwbkddelpdvazebykd/Build/Products/Debug/OpenEmuBase.framework"; sourceTree = "<group>"; };
+		98B77B571709994D00F2B5A6 /* OEJaguarSystemResponderClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OEJaguarSystemResponderClient.h; sourceTree = "<group>"; };
+		98B77B5A170999C700F2B5A6 /* JaguarGameCore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JaguarGameCore.h; sourceTree = "<group>"; };
+		98B77B5B170999C700F2B5A6 /* JaguarGameCore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JaguarGameCore.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -106,6 +110,9 @@
 		980BE27D170989FE00511340 /* VirtualJaguar */ = {
 			isa = PBXGroup;
 			children = (
+				98B77B571709994D00F2B5A6 /* OEJaguarSystemResponderClient.h */,
+				98B77B5A170999C700F2B5A6 /* JaguarGameCore.h */,
+				98B77B5B170999C700F2B5A6 /* JaguarGameCore.m */,
 				980BE27E170989FE00511340 /* Supporting Files */,
 			);
 			path = VirtualJaguar;
@@ -199,6 +206,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				98B77B5C170999C700F2B5A6 /* JaguarGameCore.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -350,6 +358,7 @@
 				980BE288170989FE00511340 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		980BE29717098BCF00511340 /* Build configuration list for PBXAggregateTarget "Build and Install VirtualJaguar" */ = {
 			isa = XCConfigurationList;
@@ -358,6 +367,7 @@
 				980BE29917098BCF00511340 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
