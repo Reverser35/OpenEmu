@@ -56,7 +56,7 @@ typedef enum _OEJaguarButton
 
 @protocol OEJaguarSystemResponderClient <OESystemResponderClient, NSObject>
 
-//- (oneway void)didPushJaguarButton:(OEVectrexButton)button forPlayer:(NSUInteger)player;
-//- (oneway void)didReleaseJaguarButton:(OEVectrexButton)button forPlayer:(NSUInteger)player;
+- (oneway void)didPushJaguarButton:(OEJaguarButton)button forPlayer:(NSUInteger)player;
+- (oneway void)didReleaseJaguarButton:(OEJaguarButton)button forPlayer:(NSUInteger)player;
 
 @end
