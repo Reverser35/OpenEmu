@@ -23,7 +23,7 @@
 	<key>CFBundleVersion</key>
 	<string>2.1.0</string>
 	<key>NSPrincipalClass</key>
-	<string></string>
+	<string>OEGameCoreController</string>
 	<key>OESystemIdentifiers</key>
 	<array>
 		<string>openemu.system.jaguar</string>
