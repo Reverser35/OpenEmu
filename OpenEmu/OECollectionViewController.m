@@ -167,7 +167,7 @@ static NSArray *OE_defaultSortDescriptors;
     NSManagedObjectContext *context = [[OELibraryDatabase defaultDatabase] managedObjectContext];
     //[gamesController bind:@"managedObjectContext" toObject:context withKeyPath:@"" options:nil];
 
-    OE_defaultSortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"displayName" ascending:YES selector:@selector(caseInsensitiveCompare:)]];
+    OE_defaultSortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"cleanDisplayName" ascending:YES selector:@selector(caseInsensitiveCompare:)]];
     
     [gamesController setManagedObjectContext:context];
     [gamesController setEntityName:@"Game"];
@@ -231,6 +231,8 @@ static NSArray *OE_defaultSortDescriptors;
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(OE_managedObjectContextDidUpdate:) name:NSManagedObjectContextDidSaveNotification object:context];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(OE_managedObjectContextDidUpdate:) name:NSManagedObjectContextObjectsDidChangeNotification object:context];
 
+    [[NSUserDefaults standardUserDefaults] addObserver:self forKeyPath:OEDisplayGameTitle options:0 context:NULL];
+
     // If the view has been loaded after a collection has been set via -setRepresentedObject:, set the appropriate
     // fetch predicate to display the items in that collection via -OE_reloadData. Otherwise, the view shows an
     // empty collection until -setRepresentedObject: is received again
@@ -241,6 +243,14 @@ static NSArray *OE_defaultSortDescriptors;
 {
     return @"CollectionView";
 }
+
+#pragma mark - KVO
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
+{
+    if([keyPath isEqualToString:OEDisplayGameTitle])
+        [self setNeedsReloadVisible];
+}
+
 #pragma mark - OELibrarySubviewControllerProtocol Implementation
 - (void)setRepresentedObject:(id<OECollectionViewItemProtocol>)representedObject
 {
