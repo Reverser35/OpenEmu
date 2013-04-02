@@ -6,7 +6,7 @@
 #import "file.h"
 #import "jagbios.h"
 #include "memory.h"
-#include <string.h>
+#include "log.h"
 
 @interface JaguarGameCore () <OEJaguarSystemResponderClient>
 {
@@ -30,6 +30,7 @@
 
 - (BOOL)loadFileAtPath:(NSString *)path
 {
+    LogInit("vj.log");                                      // initialize log file for debugging
     JaguarInit();                                           // set up hardware
     SET32(jaguarMainRAM, 0, 0x00200000);                    // set up stack
     JaguarLoadFile((char *)[path UTF8String]);              // load rom
