@@ -26,13 +26,7 @@
 
 #import <Cocoa/Cocoa.h>
 #import <OpenEmuBase/OEGameCore.h>
-#import "OEJaguarSystemResponderClient.h"
 
 OE_EXPORTED_CLASS
-@interface JaguarGameCore : OEGameCore {
-@public
-}
-
+@interface JaguarGameCore : OEGameCore
 @end
-
-extern JaguarGameCore *g_core;
