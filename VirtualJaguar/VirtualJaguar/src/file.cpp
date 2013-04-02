@@ -123,22 +123,30 @@ bool JaguarLoadFile(char * path)
 		return false;
 	}
 
+    
+    //FIXME: function doesn't return and is needed for EEPROM filename
+    //returning 1 for now which works for debugging a single rom file
 	jaguarMainROMCRC32 = crc32_calcCheckSum(buffer, jaguarROMSize);
+    
 	WriteLog("CRC: %08X\n", (unsigned int)jaguarMainROMCRC32);
-// TODO: Check for EEPROM file in ZIP file. If there is no EEPROM in the user's EEPROM
-//       directory, copy the one from the ZIP file, if it exists.
+    // TODO: Check for EEPROM file in ZIP file. If there is no EEPROM in the user's EEPROM
+    //       directory, copy the one from the ZIP file, if it exists.
+    
 	EepromInit();
 	jaguarRunAddress = 0x802000;					// For non-BIOS runs, this is true
+    
 	int fileType = ParseFileType(buffer, jaguarROMSize);
 	jaguarCartInserted = false;
 
 	if (fileType == JST_ROM)
 	{
 		jaguarCartInserted = true;
+        //FIXME: broken memcpy...
 		memcpy(jagMemSpace + 0x800000, buffer, jaguarROMSize);
-// Checking something...
-jaguarRunAddress = GET32(jagMemSpace, 0x800404);
-WriteLog("FILE: Cartridge run address is reported as $%X...\n", jaguarRunAddress);
+        
+        // Checking something...
+        jaguarRunAddress = GET32(jagMemSpace, 0x800404);
+        WriteLog("FILE: Cartridge run address is reported as $%X...\n", jaguarRunAddress);
 		delete[] buffer;
 		return true;
 	}
@@ -150,7 +158,7 @@ WriteLog("FILE: Cartridge run address is reported as $%X...\n", jaguarRunAddress
 		memcpy(jagMemSpace + 0x802000, buffer, jaguarROMSize);
 		delete[] buffer;
 
-// Maybe instead of this, we could try requiring the STUBULATOR ROM? Just a thought...
+        // Maybe instead of this, we could try requiring the STUBULATOR ROM? Just a thought...
 		// Try setting the vector to say, $1000 and putting an instruction there that loops forever:
 		// This kludge works! Yeah!
 		SET32(jaguarMainRAM, 0x10, 0x00001000);
