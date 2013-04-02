@@ -33,7 +33,7 @@
 	<key>OEProjectURL</key>
 	<string>http://icculus.org/virtualjaguar/</string>
 	<key>OEGameCoreClass</key>
-	<string>VirtualJaguarGameCore</string>
+	<string>JaguarGameCore</string>
 	<key>SUFeedURL</key>
 	<string>http://openemu.org/updater/virtualjaguar_appcast.xml</string>
 	<key>SUEnableAutomaticChecks</key>

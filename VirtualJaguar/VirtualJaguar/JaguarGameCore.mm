@@ -30,7 +30,6 @@
 
 - (BOOL)loadFileAtPath:(NSString *)path
 {
-    
     JaguarInit();                                           // set up hardware
     SET32(jaguarMainRAM, 0, 0x00200000);                    // set up stack
     JaguarLoadFile((char *)[path UTF8String]);              // load rom
