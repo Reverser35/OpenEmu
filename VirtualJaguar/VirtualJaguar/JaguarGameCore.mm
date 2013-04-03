@@ -25,8 +25,8 @@
 - (id)init
 {
     if (self = [super init]) {
-        videoWidth = 340;
-        videoHeight = 240;
+        videoWidth = 1024;
+        videoHeight = 512;
         sampleRate = 415625 / 1;    // game specific with different values for 1...
         buffer = new uint32_t[videoWidth * videoHeight];
     }
@@ -36,22 +36,23 @@
 
 - (BOOL)loadFileAtPath:(NSString *)path
 {
-      LogInit("vj.log");                                      // initialize log file for debugging
-	  vjs.GPUEnabled = true;
-	  vjs.audioEnabled = false;
-	  vjs.DSPEnabled = false;
-	  vjs.hardwareTypeNTSC = true;
-	  vjs.useJaguarBIOS = true;
-	  vjs.renderType = 0;
-	  
-	  strcpy(vjs.EEPROMPath, "/Users/jweinberg/");
-	  JaguarInit();                                           // set up hardware
-	  memcpy(jagMemSpace + 0xE00000, jaguarBootROM, 0x20000);  // Use the stock BIOS
-	  [self initVideo];
-	  SET32(jaguarMainRAM, 0, 0x00200000);                    // set up stack
-	  JaguarLoadFile((char *)[path UTF8String]);              // load rom
-	  JaguarReset();
-      return YES;
+    
+    //LogInit("vj.log");                                      // initialize log file for debugging
+	vjs.GPUEnabled = true;
+	vjs.audioEnabled = false;
+	vjs.DSPEnabled = false;
+	vjs.hardwareTypeNTSC = true;
+	vjs.useJaguarBIOS = false;
+	vjs.renderType = 0;
+	
+	//strcpy(vjs.EEPROMPath, "/path/to/eeproms");
+	JaguarInit();                                             // set up hardware
+	memcpy(jagMemSpace + 0xE00000, jaguarBootROM, 0x20000);   // Use the stock BIOS
+	[self initVideo];
+	SET32(jaguarMainRAM, 0, 0x00200000);                      // set up stack
+	JaguarLoadFile((char *)[path UTF8String]);                // load rom
+	JaguarReset();
+    return YES;
     
 }
 
@@ -71,7 +72,6 @@
 - (void)executeFrame
 {
     [self executeFrameSkippingFrame:NO];
-    
 }
 
 - (NSUInteger)audioBitDepth
@@ -89,6 +89,7 @@
 
 - (void)stopEmulation
 {
+    JaguarDone();
 }
 
 - (void)resetEmulation
@@ -103,22 +104,22 @@
 
 - (BOOL)saveStateToFileAtPath:(NSString *)fileName
 {
-    return YES;
+    return NO;
 }
 
 - (BOOL)loadStateFromFileAtPath:(NSString *)fileName
 {
-    return YES;
+    return NO;
 }
 
 - (OEIntSize)aspectSize
 {
-    return (OEIntSize){videoWidth, videoHeight};
+    return (OEIntSize){4, 3};
 }
 
 - (OEIntRect)screenRect
 {
-    return OERectMake(0, 0, videoWidth, videoHeight);
+    return OERectMake(0, 0, TOMGetVideoModeWidth(), TOMGetVideoModeHeight());
 }
 
 - (OEIntSize)bufferSize
@@ -163,14 +164,22 @@
 
 - (oneway void)didPushJaguarButton:(OEJaguarButton)button forPlayer:(NSUInteger)player
 {
-    player -= 1;
-    memset(joypad_0_buttons, 0xFF, sizeof(uint8) * 21);
+    if (player == 1) {
+        joypad_0_buttons[button] = 0xff;
+    }
+    else {
+        joypad_1_buttons[button] = 0xff;
+    }
 }
 
 - (oneway void)didReleaseJaguarButton:(OEJaguarButton)button forPlayer:(NSUInteger)player
 {
-    player -= 1;
-    memset(joypad_0_buttons, 0, sizeof(uint8) * 21);
+    if (player == 1) {
+        joypad_0_buttons[button] = 0x00;
+    }
+    else {
+        joypad_1_buttons[button] = 0x00;
+    }
 }
 
 @end

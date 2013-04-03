@@ -13,16 +13,15 @@
 // JLH  01/16/2010  Created this log ;-)
 //
 
-
 #include "joystick.h"
 
 #include "SDL.h"
 #include <time.h>
+#include <string.h>
 #include "gpu.h"
 #include "jaguar.h"
 #include "log.h"
 #include "settings.h"
-#include <string.h>
 
 // Global vars
 
@@ -32,7 +31,6 @@ uint8 joypad_1_buttons[21];
 
 bool keyBuffer[21];
 
-void * joystick1;
 //SDL_Joystick * joystick1;
 
 //extern bool finished;
