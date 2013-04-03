@@ -29,4 +29,7 @@
 
 OE_EXPORTED_CLASS
 @interface JaguarGameCore : OEGameCore
+
+- (void)initVideo;
+
 @end

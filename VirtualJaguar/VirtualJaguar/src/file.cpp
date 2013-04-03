@@ -92,9 +92,9 @@ uint32 JaguarLoadROM(uint8 * &rom, char * path)
 			return 0;
 		}
 
-		rom = new uint8[romSize];
         fseek(fp, 0, SEEK_END);
         romSize = (uint32_t)ftell(fp);
+        rom = new uint8[romSize];
 		fseek(fp, 0, SEEK_SET);
 		fread(rom, 1, romSize, fp);
 		fclose(fp);
@@ -123,9 +123,6 @@ bool JaguarLoadFile(char * path)
 		return false;
 	}
 
-    
-    //FIXME: function doesn't return and is needed for EEPROM filename
-    //returning 1 for now which works for debugging a single rom file
 	jaguarMainROMCRC32 = crc32_calcCheckSum(buffer, jaguarROMSize);
     
 	WriteLog("CRC: %08X\n", (unsigned int)jaguarMainROMCRC32);
@@ -141,7 +138,7 @@ bool JaguarLoadFile(char * path)
 	if (fileType == JST_ROM)
 	{
 		jaguarCartInserted = true;
-        //FIXME: broken memcpy...
+        
 		memcpy(jagMemSpace + 0x800000, buffer, jaguarROMSize);
         
         // Checking something...

@@ -55,9 +55,6 @@ static unsigned long crctable[256] =
 
 int crc32_calcCheckSum(unsigned char * data, unsigned int length)
 {
-    //temporary stupid fix
-    return 1;
-    
 	unsigned long crc = 0xFFFFFFFF;
 
 	for(unsigned int i=0; i<length; i++)
