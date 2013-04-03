@@ -112,11 +112,6 @@
     return NO;
 }
 
-- (OEIntSize)aspectSize
-{
-    return (OEIntSize){4, 3};
-}
-
 - (OEIntRect)screenRect
 {
     return OERectMake(0, 0, TOMGetVideoModeWidth(), TOMGetVideoModeHeight());
