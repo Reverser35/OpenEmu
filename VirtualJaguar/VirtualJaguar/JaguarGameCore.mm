@@ -8,6 +8,9 @@
 #include "memory.h"
 #include "log.h"
 #include "tom.h"
+#include "dsp.h"
+#include "settings.h"
+#include "joystick.h"
 
 @interface JaguarGameCore () <OEJaguarSystemResponderClient>
 {
@@ -22,10 +25,10 @@
 - (id)init
 {
     if (self = [super init]) {
-        videoWidth = 320;
+        videoWidth = 340;
         videoHeight = 240;
         sampleRate = 415625 / 1;    // game specific with different values for 1...
-        buffer = new uint32_t[1024 * 512];
+        buffer = new uint32_t[videoWidth * videoHeight];
     }
     
     return self;
@@ -33,14 +36,23 @@
 
 - (BOOL)loadFileAtPath:(NSString *)path
 {
-    LogInit("vj.log");                                      // initialize log file for debugging
-    JaguarInit();                                           // set up hardware
-    [self initVideo];
-    SET32(jaguarMainRAM, 0, 0x00200000);                    // set up stack
-    JaguarLoadFile((char *)[path UTF8String]);              // load rom
-    memcpy(jagMemSpace + 0xE00000, jaguarBootROM, 0x20000); // load bios
+      LogInit("vj.log");                                      // initialize log file for debugging
+	  vjs.GPUEnabled = true;
+	  vjs.audioEnabled = false;
+	  vjs.DSPEnabled = false;
+	  vjs.hardwareTypeNTSC = true;
+	  vjs.useJaguarBIOS = true;
+	  vjs.renderType = 0;
+	  
+	  strcpy(vjs.EEPROMPath, "/Users/jweinberg/");
+	  JaguarInit();                                           // set up hardware
+	  memcpy(jagMemSpace + 0xE00000, jaguarBootROM, 0x20000);  // Use the stock BIOS
+	  [self initVideo];
+	  SET32(jaguarMainRAM, 0, 0x00200000);                    // set up stack
+	  JaguarLoadFile((char *)[path UTF8String]);              // load rom
+	  JaguarReset();
+      return YES;
     
-    return YES;
 }
 
 - (void)executeFrameSkippingFrame:(BOOL)skip
@@ -50,14 +62,16 @@
 
 - (void)initVideo
 {
-    JaguarSetScreenPitch(1024);
+    JaguarSetScreenPitch(videoWidth);
     JaguarSetScreenBuffer(buffer);
-    memset(buffer, 0xFF, 1024 * 512 * sizeof(uint32_t));
+    for (int i = 0; i < videoWidth * videoHeight; ++i)
+        buffer[i] = 0xFF00FFFF;
 }
 
 - (void)executeFrame
 {
     [self executeFrameSkippingFrame:NO];
+    
 }
 
 - (NSUInteger)audioBitDepth
@@ -119,7 +133,7 @@
 
 - (GLenum)pixelFormat
 {
-    return GL_BGRA;
+    return GL_RGBA;
 }
 
 - (GLenum)pixelType
@@ -139,8 +153,7 @@
 
 - (NSTimeInterval)frameInterval
 {
-    //or 25 for PAL
-    return 29.97;
+    return 60;
 }
 
 - (NSUInteger)channelCount
@@ -151,11 +164,13 @@
 - (oneway void)didPushJaguarButton:(OEJaguarButton)button forPlayer:(NSUInteger)player
 {
     player -= 1;
+    memset(joypad_0_buttons, 0xFF, sizeof(uint8) * 21);
 }
 
 - (oneway void)didReleaseJaguarButton:(OEJaguarButton)button forPlayer:(NSUInteger)player
 {
     player -= 1;
+    memset(joypad_0_buttons, 0, sizeof(uint8) * 21);
 }
 
 @end

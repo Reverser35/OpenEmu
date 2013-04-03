@@ -341,7 +341,7 @@ void JERRYI2SCallback(void)
 
 void JERRYInit(void)
 {
-	//JoystickInit();
+	JoystickInit();
 	memcpy(&jerry_ram_8[0xD000], waveTableROM, 0x1000);
 
 	JERRYPIT1Prescaler = 0xFFFF;
@@ -357,7 +357,7 @@ void JERRYInit(void)
 
 void JERRYReset(void)
 {
-	//JoystickReset();
+	JoystickReset();
 	EepromReset();
 	JERRYResetI2S();
 
@@ -378,7 +378,7 @@ void JERRYReset(void)
 void JERRYDone(void)
 {
 	WriteLog("JERRY: M68K Interrupt control ($F10020) = %04X\n", GET16(jerry_ram_8, 0x20));
-	//JoystickDone();
+	JoystickDone();
 	DACDone();
 	EepromDone();
 }
@@ -434,8 +434,8 @@ WriteLog("JERRY: Unhandled timer read (BYTE) at %08X...\n", offset);
 //		return clock_byte_read(offset);
 //	else if (offset >= 0xF17C00 && offset <= 0xF17C01)
 //		return anajoy_byte_read(offset);
-	//else if (offset >= 0xF14000 && offset <= 0xF14003)
-	//	return JoystickReadByte(offset) | EepromReadByte(offset);
+	else if (offset >= 0xF14000 && offset <= 0xF14003)
+		return JoystickReadByte(offset) | EepromReadByte(offset);
 	else if (offset >= 0xF14000 && offset <= 0xF1A0FF)
 		return EepromReadByte(offset);
 
@@ -478,10 +478,10 @@ WriteLog("JERRY: Unhandled timer read (WORD) at %08X...\n", offset);
 		return jerryPendingInterrupt;
 //	else if ((offset >= 0xF17C00) && (offset <= 0xF17C01))
 //		return anajoy_word_read(offset);
-	//else if (offset == 0xF14000)
-	//	return (JoystickReadWord(offset) & 0xFFFE) | EepromReadWord(offset);
-	//else if ((offset >= 0xF14002) && (offset < 0xF14003))
-	//	return JoystickReadWord(offset);
+	else if (offset == 0xF14000)
+		return (JoystickReadWord(offset) & 0xFFFE) | EepromReadWord(offset);
+	else if ((offset >= 0xF14002) && (offset < 0xF14003))
+		return JoystickReadWord(offset);
 	else if ((offset >= 0xF14000) && (offset <= 0xF1A0FF))
 		return EepromReadWord(offset);
 
@@ -562,7 +562,7 @@ WriteLog("JERRY: Unhandled timer write (BYTE) at %08X...\n", offset);
 	}*/
 	else if ((offset >= 0xF14000) && (offset <= 0xF14003))
 	{
-	//	JoystickWriteByte(offset, data);
+		JoystickWriteByte(offset, data);
 		EepromWriteByte(offset, data);
 		return;
 	}
@@ -689,7 +689,7 @@ else if (offset == 0xF10020)
 	}*/
 	else if (offset >= 0xF14000 && offset < 0xF14003)
 	{
-	//	JoystickWriteWord(offset, data);
+		JoystickWriteWord(offset, data);
 		EepromWriteWord(offset, data);
 		return;
 	}
