@@ -36,6 +36,12 @@
 
 - (BOOL)loadFileAtPath:(NSString *)path
 {
+    NSString *eepromPath = [[self supportDirectoryPath] stringByAppendingString:@"/EEPROMs/"];
+    NSFileManager *defaultFileManager = [NSFileManager defaultManager];
+    
+    if (![defaultFileManager fileExistsAtPath:eepromPath]) {
+        [defaultFileManager createDirectoryAtPath:eepromPath withIntermediateDirectories:YES attributes:nil error:NULL];
+    }
     
     //LogInit("vj.log");                                      // initialize log file for debugging
 	vjs.GPUEnabled = true;
@@ -45,13 +51,14 @@
 	vjs.useJaguarBIOS = false;
 	vjs.renderType = 0;
 	
-	//strcpy(vjs.EEPROMPath, "/path/to/eeproms");
+	strcpy(vjs.EEPROMPath, [eepromPath UTF8String]);
 	JaguarInit();                                             // set up hardware
 	memcpy(jagMemSpace + 0xE00000, jaguarBootROM, 0x20000);   // Use the stock BIOS
 	[self initVideo];
 	SET32(jaguarMainRAM, 0, 0x00200000);                      // set up stack
 	JaguarLoadFile((char *)[path UTF8String]);                // load rom
 	JaguarReset();
+    
     return YES;
     
 }
@@ -159,11 +166,25 @@
 
 - (oneway void)didPushJaguarButton:(OEJaguarButton)button forPlayer:(NSUInteger)player
 {
+    // fix for core crashing when two opposite d-pad directions register simultaneously
+    // should only occur when using keyboard as controller
     if (player == 1) {
-        joypad_0_buttons[button] = 0xff;
+        if ((button == OEJaguarButtonRight && joypad_0_buttons[OEJaguarButtonLeft]) || (button == OEJaguarButtonLeft && joypad_0_buttons[OEJaguarButtonRight]) ||
+            (button == OEJaguarButtonDown && joypad_0_buttons[OEJaguarButtonUp]) || (button == OEJaguarButtonUp && joypad_0_buttons[OEJaguarButtonDown])) {
+            return;
+        }
+        else {
+                joypad_0_buttons[button] = 0xff;
+        }
     }
     else {
-        joypad_1_buttons[button] = 0xff;
+        if ((button == OEJaguarButtonRight && joypad_1_buttons[OEJaguarButtonLeft]) || (button == OEJaguarButtonLeft && joypad_1_buttons[OEJaguarButtonRight]) ||
+            (button == OEJaguarButtonDown && joypad_1_buttons[OEJaguarButtonUp]) || (button == OEJaguarButtonUp && joypad_1_buttons[OEJaguarButtonDown])) {
+            return;
+        }
+        else {
+            joypad_1_buttons[button] = 0xff;
+        }
     }
 }
 
