@@ -88,7 +88,6 @@ static uint8 SCLKFrequencyDivider = 19;			// Default is roughly 22 KHz (20774 Hz
 
 // Private function prototypes
 
-void SDLSoundCallback(void * userdata, uint8_t * buffer, int length);
 void DSPSampleCallback(void);
 
 
@@ -112,7 +111,7 @@ void DACInit(void)
     
     desired.channels = 2;
 	desired.samples = 2048;						// 2K buffer = audio delay of 42.67 ms (@ 48 KHz)
-	desired.callback = SDLSoundCallback;
+	//desired.callback = SDLSoundCallback;
 
 	/*if (SDL_OpenAudio(&desired, NULL) < 0)		// NULL means SDL guarantees what we want
 		WriteLog("DAC: Failed to initialize SDL sound...\n");
@@ -183,13 +182,13 @@ void DACDone(void)
 // Note: The samples are packed in the buffer in 16 bit left/16 bit right pairs.
 //       Also, length is the length of the buffer in BYTES
 //
-static uint8_t * sampleBuffer;
+uint8_t *sampleBuffer;
 static int bufferIndex = 0;
 static int numberOfSamples = 0;
 static bool bufferDone = false;
 
 
-void SDLSoundCallback(void * userdata, uint8_t * buffer, int length)
+void SDLSoundCallback(uint8_t * buffer, int length)
 {
 	// 1st, check to see if the DSP is running. If not, fill the buffer with L/RXTD and exit.
 

@@ -1761,6 +1761,8 @@ memset(jaguarMainRAM + 0x804, 0xFF, 4);
 	TOMInit();
 	JERRYInit();
 	CDROMInit();
+    
+    sampleBuffer = (uint8_t*)malloc(2048);
 }
 
 //New timer based code stuffola...
@@ -1903,6 +1905,8 @@ void JaguarDone(void)
 	DSPDone();
 	TOMDone();
 	JERRYDone();
+    
+    free(sampleBuffer);
 
 	// temp, until debugger is in place
 //00802016: jsr     $836F1A.l
@@ -1989,6 +1993,8 @@ void JaguarExecuteNew(void)
 		HandleNextEvent();
  	}
 	while (!frameDone);
+    
+    SDLSoundCallback(sampleBuffer, 2048);
 }
 
 
