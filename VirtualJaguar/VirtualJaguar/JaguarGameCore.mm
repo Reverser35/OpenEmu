@@ -180,18 +180,42 @@ void audio_callback_batch(uint8 *buff, int len)
     // fix for core crashing when two opposite d-pad directions register simultaneously
     // should only occur when using keyboard as controller
     if (player == 1) {
-        if ((button == OEJaguarButtonRight && joypad_0_buttons[OEJaguarButtonLeft]) || (button == OEJaguarButtonLeft && joypad_0_buttons[OEJaguarButtonRight]) ||
-            (button == OEJaguarButtonDown && joypad_0_buttons[OEJaguarButtonUp]) || (button == OEJaguarButtonUp && joypad_0_buttons[OEJaguarButtonDown])) {
-            return;
+        if (button == OEJaguarButtonRight && joypad_0_buttons[OEJaguarButtonLeft]) {
+            joypad_0_buttons[OEJaguarButtonLeft] = 0x00;
+            joypad_0_buttons[OEJaguarButtonRight] = 0xff;
+        }
+        if (button == OEJaguarButtonLeft && joypad_0_buttons[OEJaguarButtonRight]) {
+            joypad_0_buttons[OEJaguarButtonRight] = 0x00;
+            joypad_0_buttons[OEJaguarButtonLeft] = 0xff;
+        }
+        if (button == OEJaguarButtonDown && joypad_0_buttons[OEJaguarButtonUp]) {
+            joypad_0_buttons[OEJaguarButtonUp] = 0x00;
+            joypad_0_buttons[OEJaguarButtonDown] = 0xff;
+        }
+        if (button == OEJaguarButtonUp && joypad_0_buttons[OEJaguarButtonDown]) {
+            joypad_0_buttons[OEJaguarButtonDown] = 0x00;
+            joypad_0_buttons[OEJaguarButtonUp] = 0xff;
         }
         else {
                 joypad_0_buttons[button] = 0xff;
         }
     }
     else {
-        if ((button == OEJaguarButtonRight && joypad_1_buttons[OEJaguarButtonLeft]) || (button == OEJaguarButtonLeft && joypad_1_buttons[OEJaguarButtonRight]) ||
-            (button == OEJaguarButtonDown && joypad_1_buttons[OEJaguarButtonUp]) || (button == OEJaguarButtonUp && joypad_1_buttons[OEJaguarButtonDown])) {
-            return;
+        if (button == OEJaguarButtonRight && joypad_1_buttons[OEJaguarButtonLeft]) {
+            joypad_1_buttons[OEJaguarButtonLeft] = 0x00;
+            joypad_1_buttons[OEJaguarButtonRight] = 0xff;
+        }
+        if (button == OEJaguarButtonLeft && joypad_1_buttons[OEJaguarButtonRight]) {
+            joypad_1_buttons[OEJaguarButtonRight] = 0x00;
+            joypad_1_buttons[OEJaguarButtonLeft] = 0xff;
+        }
+        if (button == OEJaguarButtonDown && joypad_1_buttons[OEJaguarButtonUp]) {
+            joypad_1_buttons[OEJaguarButtonUp] = 0x00;
+            joypad_1_buttons[OEJaguarButtonDown] = 0xff;
+        }
+        if (button == OEJaguarButtonUp && joypad_1_buttons[OEJaguarButtonDown]) {
+            joypad_1_buttons[OEJaguarButtonDown] = 0x00;
+            joypad_1_buttons[OEJaguarButtonUp] = 0xff;
         }
         else {
             joypad_1_buttons[button] = 0xff;
