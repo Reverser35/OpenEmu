@@ -1762,7 +1762,7 @@ memset(jaguarMainRAM + 0x804, 0xFF, 4);
 	JERRYInit();
 	CDROMInit();
     
-    sampleBuffer = (uint8_t*)malloc(2048);
+    sampleBuffer = (uint8_t *)malloc(2048);
 }
 
 //New timer based code stuffola...

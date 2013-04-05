@@ -62,9 +62,6 @@
 
 //#define DEBUG_DAC
 
-#define BUFFER_SIZE			0x10000				// Make the DAC buffers 64K x 16 bits
-#define DAC_AUDIO_RATE		48000				// Set the audio rate to 48 KHz
-
 // Jaguar memory locations
 
 #define LTXD			0xF1A148
