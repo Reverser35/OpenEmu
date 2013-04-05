@@ -232,6 +232,8 @@ void SDLSoundCallback(uint8_t * buffer, int length)
 		HandleNextEvent(EVENT_JERRY);
 	}
 	while (!bufferDone);
+    
+    audio_callback_batch(sampleBuffer, length/2);
 }
 
 
@@ -240,8 +242,6 @@ void DSPSampleCallback(void)
 	((uint16_t *)sampleBuffer)[bufferIndex + 0] = ltxd;
 	((uint16_t *)sampleBuffer)[bufferIndex + 1] = rtxd;
 	bufferIndex += 2;
-    
-    audio_callback(ltxd, rtxd);
     
 	if (bufferIndex == numberOfSamples)
 	{
