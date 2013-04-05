@@ -17,8 +17,6 @@
 #include "jaguar.h"
 
 #include "SDL.h"
-
-//FIXME: determine whats needed in this file
 //#include "SDL_opengl.h"
 
 
