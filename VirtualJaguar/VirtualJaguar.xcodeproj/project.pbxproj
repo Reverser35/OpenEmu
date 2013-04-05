@@ -30,7 +30,7 @@
 		98951250170AD43E002E2694 /* cdintf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 98951202170AD43E002E2694 /* cdintf.cpp */; };
 		98951251170AD43E002E2694 /* cdrom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 98951204170AD43E002E2694 /* cdrom.cpp */; };
 		98951252170AD43E002E2694 /* crc32.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 98951206170AD43E002E2694 /* crc32.cpp */; };
-		98951253170AD43E002E2694 /* dac.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 98951209170AD43E002E2694 /* dac.cpp */; };
+		98951253170AD43E002E2694 /* dac.mm in Sources */ = {isa = PBXBuildFile; fileRef = 98951209170AD43E002E2694 /* dac.mm */; };
 		98951254170AD43E002E2694 /* dsp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9895120B170AD43E002E2694 /* dsp.cpp */; };
 		98951255170AD43E002E2694 /* eeprom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9895120D170AD43E002E2694 /* eeprom.cpp */; };
 		98951256170AD43E002E2694 /* event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9895120F170AD43E002E2694 /* event.cpp */; };
@@ -91,7 +91,7 @@
 		98951206170AD43E002E2694 /* crc32.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = crc32.cpp; sourceTree = "<group>"; };
 		98951207170AD43E002E2694 /* crc32.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = crc32.h; sourceTree = "<group>"; };
 		98951208170AD43E002E2694 /* cry2rgb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cry2rgb.h; sourceTree = "<group>"; };
-		98951209170AD43E002E2694 /* dac.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dac.cpp; sourceTree = "<group>"; };
+		98951209170AD43E002E2694 /* dac.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = dac.mm; sourceTree = "<group>"; };
 		9895120A170AD43E002E2694 /* dac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dac.h; sourceTree = "<group>"; };
 		9895120B170AD43E002E2694 /* dsp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dsp.cpp; sourceTree = "<group>"; };
 		9895120C170AD43E002E2694 /* dsp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dsp.h; sourceTree = "<group>"; };
@@ -247,7 +247,7 @@
 				98951206170AD43E002E2694 /* crc32.cpp */,
 				98951207170AD43E002E2694 /* crc32.h */,
 				98951208170AD43E002E2694 /* cry2rgb.h */,
-				98951209170AD43E002E2694 /* dac.cpp */,
+				98951209170AD43E002E2694 /* dac.mm */,
 				9895120A170AD43E002E2694 /* dac.h */,
 				9895120B170AD43E002E2694 /* dsp.cpp */,
 				9895120C170AD43E002E2694 /* dsp.h */,
@@ -404,7 +404,7 @@
 				98951250170AD43E002E2694 /* cdintf.cpp in Sources */,
 				98951251170AD43E002E2694 /* cdrom.cpp in Sources */,
 				98951252170AD43E002E2694 /* crc32.cpp in Sources */,
-				98951253170AD43E002E2694 /* dac.cpp in Sources */,
+				98951253170AD43E002E2694 /* dac.mm in Sources */,
 				98951254170AD43E002E2694 /* dsp.cpp in Sources */,
 				98951255170AD43E002E2694 /* eeprom.cpp in Sources */,
 				98951256170AD43E002E2694 /* event.cpp in Sources */,

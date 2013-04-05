@@ -31,5 +31,6 @@ OE_EXPORTED_CLASS
 @interface JaguarGameCore : OEGameCore
 
 - (void)initVideo;
+void audio_callback(int16_t left, int16_t right);
 
 @end

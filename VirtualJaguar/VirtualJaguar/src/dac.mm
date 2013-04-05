@@ -57,6 +57,7 @@
 #include "m68000/m68kinterface.h"
 //#include "memory.h"
 #include "settings.h"
+#import "JaguarGameCore.h"
 
 
 //#define DEBUG_DAC
@@ -245,6 +246,8 @@ void DSPSampleCallback(void)
 	((uint16_t *)sampleBuffer)[bufferIndex + 1] = rtxd;
 	bufferIndex += 2;
 
+    audio_callback(ltxd, rtxd);
+    
 	if (bufferIndex == numberOfSamples)
 	{
 		bufferDone = true;
