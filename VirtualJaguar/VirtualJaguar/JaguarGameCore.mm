@@ -1,7 +1,6 @@
 #import <OpenEmuBase/OERingBuffer.h>
 #import <OpenGL/gl.h>
 #import "JaguarGameCore.h"
-#import "OEJaguarSystemResponderClient.h"
 #import "jaguar.h"
 #import "file.h"
 #import "jagbios.h"
@@ -177,59 +176,99 @@ void audio_callback_batch(uint8 *buff, int len)
 
 - (oneway void)didPushJaguarButton:(OEJaguarButton)button forPlayer:(NSUInteger)player
 {
-    // fix for core crashing when two opposite d-pad directions register simultaneously
-    // should only occur when using keyboard as controller
+    uint8_t *currentController;
+    
     if (player == 1) {
-        if (button == OEJaguarButtonRight && joypad_0_buttons[OEJaguarButtonLeft]) {
-            joypad_0_buttons[OEJaguarButtonLeft] = 0x00;
-            joypad_0_buttons[OEJaguarButtonRight] = 0xff;
-        }
-        if (button == OEJaguarButtonLeft && joypad_0_buttons[OEJaguarButtonRight]) {
-            joypad_0_buttons[OEJaguarButtonRight] = 0x00;
-            joypad_0_buttons[OEJaguarButtonLeft] = 0xff;
-        }
-        if (button == OEJaguarButtonDown && joypad_0_buttons[OEJaguarButtonUp]) {
-            joypad_0_buttons[OEJaguarButtonUp] = 0x00;
-            joypad_0_buttons[OEJaguarButtonDown] = 0xff;
-        }
-        if (button == OEJaguarButtonUp && joypad_0_buttons[OEJaguarButtonDown]) {
-            joypad_0_buttons[OEJaguarButtonDown] = 0x00;
-            joypad_0_buttons[OEJaguarButtonUp] = 0xff;
-        }
-        else {
-                joypad_0_buttons[button] = 0xff;
-        }
+        currentController = joypad_0_buttons;
     }
     else {
-        if (button == OEJaguarButtonRight && joypad_1_buttons[OEJaguarButtonLeft]) {
-            joypad_1_buttons[OEJaguarButtonLeft] = 0x00;
-            joypad_1_buttons[OEJaguarButtonRight] = 0xff;
-        }
-        if (button == OEJaguarButtonLeft && joypad_1_buttons[OEJaguarButtonRight]) {
-            joypad_1_buttons[OEJaguarButtonRight] = 0x00;
-            joypad_1_buttons[OEJaguarButtonLeft] = 0xff;
-        }
-        if (button == OEJaguarButtonDown && joypad_1_buttons[OEJaguarButtonUp]) {
-            joypad_1_buttons[OEJaguarButtonUp] = 0x00;
-            joypad_1_buttons[OEJaguarButtonDown] = 0xff;
-        }
-        if (button == OEJaguarButtonUp && joypad_1_buttons[OEJaguarButtonDown]) {
-            joypad_1_buttons[OEJaguarButtonDown] = 0x00;
-            joypad_1_buttons[OEJaguarButtonUp] = 0xff;
-        }
-        else {
-            joypad_1_buttons[button] = 0xff;
-        }
+        currentController = joypad_1_buttons;
+    }
+    
+    // special cases to prevent invalid inputs
+    if (button == OEJaguarButtonRight && currentController[BUTTON_L]) {
+        currentController[BUTTON_L] = 0x00;
+        currentController[BUTTON_R] = 0x01;
+    }
+    else if (button == OEJaguarButtonLeft && currentController[BUTTON_R]) {
+        currentController[BUTTON_R] = 0x00;
+        currentController[BUTTON_L] = 0x01;
+    }
+    else if (button == OEJaguarButtonDown && currentController[BUTTON_U]) {
+        currentController[BUTTON_U] = 0x00;
+        currentController[BUTTON_D] = 0x01;
+    }
+    else if (button == OEJaguarButtonUp && currentController[BUTTON_D]) {
+        currentController[BUTTON_D] = 0x00;
+        currentController[BUTTON_U] = 0x01;
+    }
+    else {
+        int index = [self getIndexForOEJaguarButton:button];
+        currentController[index] = 0x01;
     }
 }
 
 - (oneway void)didReleaseJaguarButton:(OEJaguarButton)button forPlayer:(NSUInteger)player
 {
+    uint8_t *currentController;
+    
     if (player == 1) {
-        joypad_0_buttons[button] = 0x00;
+        currentController = joypad_0_buttons;
     }
     else {
-        joypad_1_buttons[button] = 0x00;
+        currentController = joypad_1_buttons;
+    }
+    
+    int index = [self getIndexForOEJaguarButton:button];
+    currentController[index] = 0x00;
+}
+
+- (int)getIndexForOEJaguarButton:(OEJaguarButton)btn {    
+    switch (btn) {
+        case OEJaguarButtonUp:
+            return BUTTON_U;
+        case OEJaguarButtonDown:
+            return BUTTON_D;
+        case OEJaguarButtonLeft:
+            return BUTTON_L;
+        case OEJaguarButtonRight:
+            return BUTTON_R;
+        case OEJaguarButtonA:
+            return BUTTON_A;
+        case OEJaguarButtonB:
+            return BUTTON_B;
+        case OEJaguarButtonC:
+            return BUTTON_C;
+        case OEJaguarButtonPause:
+            return BUTTON_PAUSE;
+        case OEJaguarButtonOption:
+            return BUTTON_OPTION;
+        case OEJaguarButton1:
+            return BUTTON_1;
+        case OEJaguarButton2:
+            return BUTTON_2;
+        case OEJaguarButton3:
+            return BUTTON_3;
+        case OEJaguarButton4:
+            return BUTTON_4;
+        case OEJaguarButton5:
+            return BUTTON_5;
+        case OEJaguarButton6:
+            return BUTTON_6;
+        case OEJaguarButton7:
+            return BUTTON_7;
+        case OEJaguarButton8:
+            return BUTTON_8;
+        case OEJaguarButton9:
+            return BUTTON_9;
+        case OEJaguarButton0:
+            return BUTTON_0;
+        case OEJaguarButtonAsterisk:
+            return BUTTON_s;
+        case OEJaguarButtonPound:
+            return BUTTON_d;
+        default:
+            return -1;
     }
 }
 

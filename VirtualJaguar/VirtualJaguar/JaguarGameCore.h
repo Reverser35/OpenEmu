@@ -26,11 +26,13 @@
 
 #import <Cocoa/Cocoa.h>
 #import <OpenEmuBase/OEGameCore.h>
+#import "OEJaguarSystemResponderClient.h"
 
 OE_EXPORTED_CLASS
 @interface JaguarGameCore : OEGameCore
 
 - (void)initVideo;
 void audio_callback_batch(uint8 *buff, int len);
+- (int)getIndexForOEJaguarButton:(OEJaguarButton)btn;
 
 @end
