@@ -123,6 +123,8 @@ void DACInit(void)
 		WriteLog("DAC: Successfully initialized. Sample rate: %u\n", desired.freq);
 	}*/
 
+    DACReset();
+    
 	ltxd = lrxd = desired.silence;
 
 	uint32_t riscClockRate = (vjs.hardwareTypeNTSC ? RISC_CLOCK_RATE_NTSC : RISC_CLOCK_RATE_PAL);
