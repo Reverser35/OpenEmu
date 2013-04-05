@@ -11,6 +11,7 @@
 #include "dsp.h"
 #include "settings.h"
 #include "joystick.h"
+#include "dac.h"
 
 @interface JaguarGameCore () <OEJaguarSystemResponderClient>
 {
@@ -21,15 +22,18 @@
 @end
 @implementation JaguarGameCore
 
+static JaguarGameCore *current;
 
 - (id)init
 {
     if (self = [super init]) {
         videoWidth = 1024;
         videoHeight = 512;
-        sampleRate = 415625 / 1;    // game specific with different values for 1...
+        sampleRate = DAC_AUDIO_RATE;
         buffer = new uint32_t[videoWidth * videoHeight];
     }
+    
+    current = self;
     
     return self;
 }
@@ -45,8 +49,8 @@
     
     //LogInit("vj.log");                                      // initialize log file for debugging
 	vjs.GPUEnabled = true;
-	vjs.audioEnabled = false;
-	vjs.DSPEnabled = false;
+	vjs.audioEnabled = true;                                  // not used currently
+	vjs.DSPEnabled = true;
 	vjs.hardwareTypeNTSC = true;
 	vjs.useJaguarBIOS = false;
 	vjs.renderType = 0;
@@ -84,10 +88,6 @@
 - (NSUInteger)audioBitDepth
 {
     return 16;
-}
-
-- (void)updateSound:(uint8_t *)buff len:(int)len
-{
 }
 
 - (void)setupEmulation

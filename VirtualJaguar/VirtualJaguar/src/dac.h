@@ -20,4 +20,7 @@ void DACWriteWord(uint32 offset, uint16 data, uint32 who = UNKNOWN);
 uint8 DACReadByte(uint32 offset, uint32 who = UNKNOWN);
 uint16 DACReadWord(uint32 offset, uint32 who = UNKNOWN);
 
+#define BUFFER_SIZE			0x10000				// Make the DAC buffers 64K x 16 bits
+#define DAC_AUDIO_RATE		48000				// Set the audio rate to 48 KHz
+
 #endif	// __DAC_H__
