@@ -40,11 +40,14 @@ static JaguarGameCore *current;
 
 - (BOOL)loadFileAtPath:(NSString *)path
 {
-    NSString *eepromPath = [[self supportDirectoryPath] stringByAppendingString:@"/EEPROMs/"];
-    NSFileManager *defaultFileManager = [NSFileManager defaultManager];
+    NSString *batterySavesDirectory = [self batterySavesDirectoryPath];
     
-    if (![defaultFileManager fileExistsAtPath:eepromPath]) {
-        [defaultFileManager createDirectoryAtPath:eepromPath withIntermediateDirectories:YES attributes:nil error:NULL];
+    if([batterySavesDirectory length] != 0)
+    {
+        [[NSFileManager defaultManager] createDirectoryAtPath:batterySavesDirectory withIntermediateDirectories:YES attributes:nil error:NULL];
+        
+        NSString *filePath = [batterySavesDirectory stringByAppendingString:@"/"];
+        strcpy(vjs.EEPROMPath, [filePath UTF8String]);
     }
     
     //LogInit("vj.log");                                      // initialize log file for debugging
@@ -55,7 +58,6 @@ static JaguarGameCore *current;
 	vjs.useJaguarBIOS = false;
 	vjs.renderType = 0;
 	
-	strcpy(vjs.EEPROMPath, [eepromPath UTF8String]);
 	JaguarInit();                                             // set up hardware
 	memcpy(jagMemSpace + 0xE00000, jaguarBootROM, 0x20000);   // Use the stock BIOS
 	[self initVideo];
