@@ -80,10 +80,13 @@ static JaguarGameCore *current;
         buffer[i] = 0xFF00FFFF;
 }
 
-void audio_callback(int16_t left, int16_t right)
+void audio_callback_batch(uint8 *buff, int len)
 {
-	[[current ringBufferAtIndex:0] write:&left maxLength:2];
-    [[current ringBufferAtIndex:0] write:&right maxLength:2];
+    for (int i = 0; i < len; i += 2) {
+        int16_t *realBuff = (int16_t *)buff;
+        [[current ringBufferAtIndex:0] write:realBuff+i maxLength:2];
+        [[current ringBufferAtIndex:0] write:realBuff+i+1 maxLength:2];
+    }
 }
 
 - (void)executeFrame
