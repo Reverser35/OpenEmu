@@ -179,13 +179,13 @@ void DACDone(void)
 // Note: The samples are packed in the buffer in 16 bit left/16 bit right pairs.
 //       Also, length is the length of the buffer in BYTES
 //
-uint8_t *sampleBuffer;
+uint16_t *sampleBuffer;
 static int bufferIndex = 0;
 static int numberOfSamples = 0;
 static bool bufferDone = false;
 
 
-void SDLSoundCallback(uint8_t * buffer, int length)
+void SDLSoundCallback(uint16_t * buffer, int length)
 {
 	// 1st, check to see if the DSP is running. If not, fill the buffer with L/RXTD and exit.
 
@@ -193,8 +193,8 @@ void SDLSoundCallback(uint8_t * buffer, int length)
 	{
 		for(int i=0; i<(length/2); i+=2)
 		{
-			((uint16_t *)buffer)[i + 0] = ltxd;
-			((uint16_t *)buffer)[i + 1] = rtxd;
+			buffer[i + 0] = ltxd;
+			buffer[i + 1] = rtxd;
 		}
 
 		return;
@@ -239,8 +239,8 @@ void SDLSoundCallback(uint8_t * buffer, int length)
 
 void DSPSampleCallback(void)
 {
-	((uint16_t *)sampleBuffer)[bufferIndex + 0] = ltxd;
-	((uint16_t *)sampleBuffer)[bufferIndex + 1] = rtxd;
+	sampleBuffer[bufferIndex + 0] = ltxd;
+	sampleBuffer[bufferIndex + 1] = rtxd;
 	bufferIndex += 2;
     
 	if (bufferIndex == numberOfSamples)

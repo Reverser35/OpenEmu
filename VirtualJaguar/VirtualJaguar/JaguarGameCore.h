@@ -32,7 +32,7 @@ OE_EXPORTED_CLASS
 @interface JaguarGameCore : OEGameCore
 
 - (void)initVideo;
-void audio_callback_batch(uint8 *buff, int len);
+void audio_callback_batch(uint16_t *buff, int len);
 - (int)getIndexForOEJaguarButton:(OEJaguarButton)btn;
 
 @end
