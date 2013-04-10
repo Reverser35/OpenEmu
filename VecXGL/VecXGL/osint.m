@@ -24,6 +24,7 @@
 #include "overlay.h"					// overlay texture info
 #import "osint.h"
 #import "VectrexGameCore.h"
+#import "e8910.h"
 
 //typedefs for integers
 typedef uint8_t Uint8;
@@ -98,6 +99,8 @@ int osint_defaults (void)
 	for (b = 0; b < sizeof (cart); b++) {
 		cart[b] = 0;
 	}
+    
+    e8910_init_sound();
     
     //initialize and zero audio buffer
     pWave = malloc(VECTREX_AUDIO_SAMPLES);
