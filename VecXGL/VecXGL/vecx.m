@@ -1044,9 +1044,9 @@ void vecx_emu (long cycles, int ahead)
 			vectors_draw = tmp;
 		}
 	}
-    //Fill buffer and call core to update sound
-    e8910_callback(pWave, VECTREX_AUDIO_SAMPLES/2);
     
+    //Fill buffer and call core to update sound
+    e8910_callback(pWave, VECTREX_AUDIO_SAMPLES);
     [g_core updateSound:pWave len:VECTREX_AUDIO_SAMPLES];
 
 }

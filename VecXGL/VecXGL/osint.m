@@ -39,7 +39,7 @@ Uint8 AY_tone_enable[3];
 Uint8 AY_noise_enable[3];
 
 //Audio buffer
-Uint16 *pWave;
+Uint8 *pWave;
 
 static const char* cartname = NULL;
 
@@ -103,7 +103,7 @@ int osint_defaults (void)
     e8910_init_sound();
     
     //initialize and zero audio buffer
-    pWave = malloc(VECTREX_AUDIO_SAMPLES * sizeof(uint16_t));
+    pWave = malloc(VECTREX_AUDIO_SAMPLES);
     memset(pWave, 0, VECTREX_AUDIO_SAMPLES);
     
     g_overlay.width = 0;

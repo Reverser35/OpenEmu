@@ -27,7 +27,6 @@
 
 typedef int           INT32;
 typedef unsigned int  UINT32;
-typedef unsigned short UINT16;
 typedef char          INT8;
 typedef unsigned char UINT8;
 
@@ -203,11 +202,11 @@ void e8910_write(int r, int v)
 	}
 }
 
-void e8910_callback(UINT16 *stream, int length)
+void e8910_callback(UINT8 *stream, int length)
 {
 
 	int outn;
-	UINT16* buf1 = stream;
+	UINT8* buf1 = stream;
 
 	/* hack to prevent us from hanging when starting filtered outputs */
 	if (!PSG.ready)
@@ -462,10 +461,8 @@ void e8910_callback(UINT16 *stream, int length)
 			}
 		}
 
-        vol = (vola * PSG.VolA + volb * PSG.VolB + volc * PSG.VolC) / (3 * STEP);
-        if (--length & 1) {
-            *(buf1++) = ((vol >> 8) << 8) - 0x7ff;
-        }
+    vol = (vola * PSG.VolA + volb * PSG.VolB + volc * PSG.VolC) / (3 * STEP);
+    if (--length & 1) *(buf1++) = vol >> 8;
 	}
 }
 
