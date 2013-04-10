@@ -5,6 +5,9 @@
       location = "group:OpenEmu/OpenEmu.xcodeproj">
    </FileRef>
    <FileRef
+      location = "group:Supermodel/Supermodel.xcodeproj">
+   </FileRef>
+   <FileRef
       location = "group:VirtualJaguar/VirtualJaguar.xcodeproj">
    </FileRef>
    <FileRef
