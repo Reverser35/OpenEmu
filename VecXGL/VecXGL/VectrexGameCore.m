@@ -95,10 +95,10 @@ VectrexGameCore *g_core;
 
 - (NSUInteger)audioBitDepth
 {
-    return 8;
+    return 16;
 }
 
-- (void)updateSound:(uint8_t *)buff len:(int)len
+- (void)updateSound:(uint16_t *)buff len:(int)len
 {
     [[g_core ringBufferAtIndex:0] write:buff maxLength:len];
 }

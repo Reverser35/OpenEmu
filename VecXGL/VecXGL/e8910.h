@@ -4,6 +4,6 @@
 void e8910_init_sound();
 void e8910_done_sound();
 void e8910_write(int r, int v);
-void e8910_callback(uint8_t *stream, int length);
+void e8910_callback(uint16_t *stream, int length);
 
 #endif

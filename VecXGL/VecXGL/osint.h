@@ -11,7 +11,7 @@
 #define DEFAULT_OVERLAYTRANSPARENCY	0.5f
 #define VECTREX_AUDIO_FREQ          22050
 #define VECTREX_AUDIO_CHANNELS      1
-#define VECTREX_AUDIO_SAMPLES       441
+#define VECTREX_AUDIO_SAMPLES       882
 
 void osint_render (void);
 int osint_msgs (void);
@@ -22,7 +22,7 @@ void osint_btnDown(OEVectrexButton btn);
 void osint_btnUp(OEVectrexButton btn);
 void load_overlay(char *filename);
 
-extern uint8_t *pWave;
+extern uint16_t *pWave;
 
 #endif
 
