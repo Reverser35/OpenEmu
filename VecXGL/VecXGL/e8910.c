@@ -209,11 +209,11 @@ void e8910_callback(UINT8 *stream, int length)
 	UINT8* buf1 = stream;
 
 	/* hack to prevent us from hanging when starting filtered outputs */
-	/*if (!PSG.ready)
+	if (!PSG.ready)
 	{
 		memset(stream, 0, length * sizeof(*stream));
 		return;
-	}*/
+	}
 
   length = length * 2;
 
