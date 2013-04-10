@@ -464,7 +464,7 @@ void e8910_callback(UINT16 *stream, int length)
 
         vol = (vola * PSG.VolA + volb * PSG.VolB + volc * PSG.VolC) / (3 * STEP);
         if (--length & 1) {
-            *(buf1++) = ((vol >> 8) << 8) - 0x7ff;;
+            *(buf1++) = ((vol >> 8) << 8) - 0x7ff;
         }
 	}
 }
