@@ -1760,8 +1760,8 @@ memset(jaguarMainRAM + 0x804, 0xFF, 4);
 	JERRYInit();
 	CDROMInit();
     
-    sampleBuffer = (uint16_t *)malloc(2048 * sizeof(uint16_t));
-    memset(sampleBuffer, 0, 2048 * sizeof(uint16_t));
+    sampleBuffer = (uint16_t *)malloc(BUFFER_SIZE * sizeof(uint16_t));
+    memset(sampleBuffer, 0, BUFFER_SIZE * sizeof(uint16_t));
 }
 
 //New timer based code stuffola...
@@ -1993,7 +1993,7 @@ void JaguarExecuteNew(void)
  	}
 	while (!frameDone);
     
-    SDLSoundCallback(sampleBuffer, 2048);
+    SDLSoundCallback(sampleBuffer, BUFFER_SIZE*2);
 }
 
 

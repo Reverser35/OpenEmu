@@ -233,7 +233,7 @@ void SDLSoundCallback(uint16_t * buffer, int length)
 	}
 	while (!bufferDone);
     
-    audio_callback_batch(sampleBuffer, length/2);
+    audio_callback_batch(sampleBuffer, length);
 }
 
 

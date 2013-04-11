@@ -22,7 +22,7 @@ uint16 DACReadWord(uint32 offset, uint32 who = UNKNOWN);
 
 void SDLSoundCallback(uint16_t * buffer, int length);
 
-#define BUFFER_SIZE			0x10000				// Make the DAC buffers 64K x 16 bits
+#define BUFFER_SIZE			0x800				// Make the DAC buffers 64K x 16 bits
 #define DAC_AUDIO_RATE		48000				// Set the audio rate to 48 KHz
 
 extern uint16_t *sampleBuffer;
